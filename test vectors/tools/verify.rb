@@ -59,6 +59,15 @@ end
 class LineReader
     # Allow going back one line when reading a file a line at a time
 
+    def self.open( filename )
+        begin
+            lr = LineReader.new( filename )
+            yield lr
+        ensure
+            lr.close
+        end
+    end
+
     def initialize( filename )
         @fin = File.open( filename, 'r' )
         @last_line = ''
@@ -223,25 +232,26 @@ class Verify
     end
 
     def verify
-        @reader = LineReader.new( @test_filename )
-        @state = READ_STATE::SEEKING
-        while( line = gets )
-            if ! is_discardable_comment( line )
-                case @state
-                when READ_STATE::SEEKING
-                    seeking( line )
-                when READ_STATE::READING_JCR
-                    reading_jcr( line )
-                when READ_STATE::READING_JSON
-                    reading_json( line )
+        LineReader.open( @test_filename ) { |r|
+            @reader = r
+            @state = READ_STATE::SEEKING
+            while( line = gets )
+                if ! is_discardable_comment( line )
+                    case @state
+                    when READ_STATE::SEEKING
+                        seeking( line )
+                    when READ_STATE::READING_JCR
+                        reading_jcr( line )
+                    when READ_STATE::READING_JSON
+                        reading_json( line )
+                    end
                 end
             end
-        end
-        if @state == READ_STATE::READING_JCR || @state == READ_STATE::READING_JSON
-            run_test
-        end
-        @reader.close
-        puts @test_record.to_s
+            if @state == READ_STATE::READING_JCR || @state == READ_STATE::READING_JSON
+                run_test
+            end
+            puts @test_record.to_s
+        }
     end
 
     private
