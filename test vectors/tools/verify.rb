@@ -51,9 +51,35 @@ def help
 end
 
 def verify_against_all_test_files
+    test_record = TestRecord.new
     Dir.glob( File.join( $test_file_path, '*.jcrtv' ) ) { | filename |
-        Verify.new( filename ).verify
+        Verify.new( filename, test_record ).verify
     }
+    puts test_record.to_s
+end
+
+class TestRecord
+    def initialize
+        @n_tests = @n_fails = 0
+    end
+
+    def record( is_pass )
+        @n_tests += 1
+        @n_fails += 1 if ! is_pass
+        return is_pass
+    end
+
+    def num_tests
+        return @n_tests
+    end
+
+    def num_fails
+        return @n_fails
+    end
+
+    def to_s
+        return "#{@n_fails} fails, #{@n_tests} tests"
+    end
 end
 
 class LineReader
@@ -102,30 +128,6 @@ class LineReader
     def close
         @fin.close if @fin
         @fin = nil
-    end
-end
-
-class TestRecord
-    def initialize
-        @n_tests = @n_fails = 0
-    end
-
-    def record( is_pass )
-        @n_tests += 1
-        @n_fails += 1 if ! is_pass
-        return is_pass
-    end
-
-    def num_tests
-        return @n_tests
-    end
-
-    def num_fails
-        return @n_fails
-    end
-
-    def to_s
-        return "#{@n_fails} fails, #{@n_tests} tests"
     end
 end
 
@@ -194,7 +196,8 @@ class TestRunner
         end
         if ! @test_record.record( is_jcr_ok == @expected_jcr_result )
             puts "Test failed : #{@description != '' ? @description : ''}"
-            puts "    When checking JCR '#{@jcr.strip}' expected #{@expected_jcr_result ? 'Pass' : 'Fail'}"
+            puts "    When checking JCR '#{@jcr.strip}'"
+            puts "    Expected #{@expected_jcr_result ? 'Pass' : 'Fail'}"
             puts "    File: #{@filename}, line #{@line}"
         end
     end
@@ -206,7 +209,8 @@ class TestRunner
             result = jcr_ctx.evaluate( json_tree )
             if ! @test_record.record( result.success == @expected_json_result )
                 puts "Test failed : #{@description != '' ? @description : ''}"
-                puts "    When checking '#{@json.strip}' against '#{@jcr.strip}' expected #{@expected_json_result ? 'Pass' : 'Fail'}"
+                puts "    When checking '#{@json.strip}' against '#{@jcr.strip}'"
+                puts "    Expected #{@expected_json_result ? 'Pass' : 'Fail'}"
                 puts "    File: #{@filename}, line #{@line}"
             end
         rescue Parslet::ParseFailed
@@ -217,14 +221,14 @@ class TestRunner
 end
 
 class Verify
-    def initialize( test_filename )
+    def initialize( test_filename, test_record )
         @test_filename = test_filename
         @description_tracker = DescriptionTracker.new
         @jcr = ''
         @expected_jcr_result = false
         @json = nil
         @expected_json_result = false
-        @test_record = TestRecord.new
+        @test_record = test_record
     end
 
     class READ_STATE
@@ -250,7 +254,6 @@ class Verify
             if @state == READ_STATE::READING_JCR || @state == READ_STATE::READING_JSON
                 run_test
             end
-            puts @test_record.to_s
         }
     end
 
