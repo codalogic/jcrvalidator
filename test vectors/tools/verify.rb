@@ -236,6 +236,7 @@ class Verify
     end
 
     def verify
+        puts "#{File.basename( @test_filename )}..."
         LineReader.open( @test_filename ) { |r|
             @reader = r
             @state = READ_STATE::SEEKING
