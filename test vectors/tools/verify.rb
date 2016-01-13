@@ -242,6 +242,7 @@ class Verify
         @json = nil
         @expected_json_result = false
         @test_record = test_record
+        @line_num = 0
     end
 
     class READ_STATE
@@ -281,11 +282,13 @@ class Verify
             @json = nil
             @expected_jcr_result = is_pass_expected( line )
             @description_tracker.associate_with_jcr
+            @line_num = line_num
             @state = READ_STATE::READING_JCR
         elsif is_json_marker( line )
             @json = ''
             @expected_json_result = is_pass_expected( line )
             @description_tracker.associate_with_json
+            @line_num = line_num
             @state = READ_STATE::READING_JSON
         end
     end
@@ -347,7 +350,7 @@ class Verify
 
     def run_test
         TestRunner.new( @test_record ).run(
-                filename: @test_filename, line: line_num,
+                filename: @test_filename, line: @line_num,
                 description: @description_tracker.test_description,
                 jcr: @jcr, expected_jcr_result: @expected_jcr_result,
                 json: @json, expected_json_result: @expected_json_result )
