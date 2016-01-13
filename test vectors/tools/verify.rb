@@ -203,7 +203,7 @@ class TestRunner
     def run_jcr_test
         is_jcr_ok = true
         begin
-            JCR::Context.new( @jcr )
+            JCR.parse( @jcr )   # Only test syntax of standalone JCR, not all dependencies
         rescue
             is_jcr_ok = false
         end
