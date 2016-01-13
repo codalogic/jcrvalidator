@@ -27,26 +27,33 @@ VETTED_PATH = '../vetted'
 EXTRACTED_PATH = '../extracted'
 
 $test_file_path = VETTED_PATH
-
-$n_tests_executed = $n_tests_failed = 0
+$specific_test_file = ''
 
 def main
     interpret_command_line
 
-    verify_against_all_test_files
+    if $specific_test_file != ''
+        verify_single_test_file $specific_test_file
+    else
+        verify_against_all_test_files
+    end
 end
 
 def interpret_command_line
     help if ARGV[0] == '-?'
     $test_file_path = EXTRACTED_PATH if ARGV[0] == '-e'
     $test_file_path = ARGV[1] if ARGV[0] == '-d' && ARGV[1]
+    $specific_test_file = ARGV[1] if ARGV[0] == '-f' && ARGV[1]
 end
 
 def help
     puts "verify.rb - Verify JCR test vectors"
+    puts "  Without flags, the program checks against the test files in the"
+    puts "  ../vetted directory."
     puts "Flags:"
     puts "  -e : Used 'extracted' test files rather than 'vetted' test files"
     puts "  -d <path> : Use test files located in the directory at <path>"
+    puts "  -f <file> : Use test files located in the named test file"
     exit
 end
 
@@ -55,6 +62,12 @@ def verify_against_all_test_files
     Dir.glob( File.join( $test_file_path, '*.jcrtv' ) ) { | filename |
         Verify.new( filename, test_record ).verify
     }
+    puts test_record.to_s
+end
+
+def verify_single_test_file( test_file )
+    test_record = TestRecord.new
+    Verify.new( test_file, test_record ).verify
     puts test_record.to_s
 end
 
@@ -190,8 +203,8 @@ class TestRunner
     def run_jcr_test
         is_jcr_ok = true
         begin
-            JCR.parse( @jcr )
-        rescue Parslet::ParseFailed
+            JCR::Context.new( @jcr )
+        rescue
             is_jcr_ok = false
         end
         if ! @test_record.record( is_jcr_ok == @expected_jcr_result )
@@ -213,7 +226,7 @@ class TestRunner
                 puts "    Expected #{@expected_json_result ? 'Pass' : 'Fail'}"
                 puts "    File: #{@filename}, line #{@line}"
             end
-        rescue Parslet::ParseFailed
+        rescue
             # The JCR should already have been tested standalone, so repeat
             # reporting of a JCR error is not required
         end
