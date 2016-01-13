@@ -111,14 +111,36 @@ class Extractor
             if /expect\{/.match( line ) && /JCR/.match( line ) && /}.to raise_error/.match( line )
                 @expected_jcr_result = false
             end
+
+            if /JCR.evaluate_rule/.match( line )
+                extract_json_from_evaluate_rule( line )
+            end
+
+            if /expect\( e.success \).to be_falsey/.match( line )
+                @expected_json_result = false
+            end
         end
     end
 
+    def extract_json_from_evaluate_rule( line )
+        # Example haystack: e = JCR.evaluate_rule( tree[0], tree[0], [ ], JCR::EvalConditions.new( mapping, nil ) )
+        json = line
+        json.sub!( /.*JCR.evaluate_rule\([^,]+,[^,]+,/, '' )
+        json.sub!( /, JCR::Eval.*/, '' )
+        @json = json
+        @expected_json_result = true
+    end
+
     def interpret
-        if( @jcr != '' )
+        if @jcr != ''
             @fout.puts "## #{@description}"
             @fout.puts "JCR: #{@expected_jcr_result ? 'Pass' : 'Fail'}"
             @fout.puts "    #{@jcr}"
+
+            if @json
+                @fout.puts "JSON: #{@expected_json_result ? 'Pass' : 'Fail'}"
+                @fout.puts "    #{@json}"
+            end
             @fout.puts
         else
             puts "Unable to extract JCR for:"
