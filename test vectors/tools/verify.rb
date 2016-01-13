@@ -95,6 +95,142 @@ class TestRecord
     end
 end
 
+class Verify
+    def initialize( test_filename, test_record )
+        @test_filename = test_filename
+        @description_tracker = DescriptionTracker.new
+        @jcr = ''
+        @expected_jcr_result = false
+        @json = nil
+        @expected_json_result = false
+        @test_record = test_record
+        @line_num = 0
+    end
+
+    class READ_STATE
+        SEEKING = 1; READING_JCR = 2; READING_JSON = 3;
+    end
+
+    def verify
+        puts "#{File.basename( @test_filename )}..."
+        LineReader.open( @test_filename ) { |r|
+            @reader = r
+            @state = READ_STATE::SEEKING
+            while( line = gets )
+                if ! is_discardable_comment( line )
+                    case @state
+                    when READ_STATE::SEEKING
+                        seeking( line )
+                    when READ_STATE::READING_JCR
+                        reading_jcr( line )
+                    when READ_STATE::READING_JSON
+                        reading_json( line )
+                    end
+                end
+            end
+            if @state == READ_STATE::READING_JCR || @state == READ_STATE::READING_JSON
+                run_test
+            end
+        }
+    end
+
+    private
+
+    def seeking( line )
+        if is_description_marker( line )
+            @description_tracker.new_description( get_description( line ) )
+        elsif is_jcr_marker( line )
+            @jcr = ''
+            @json = nil
+            @expected_jcr_result = is_pass_expected( line )
+            @description_tracker.associate_with_jcr
+            @line_num = line_num
+            @state = READ_STATE::READING_JCR
+        elsif is_json_marker( line )
+            @json = ''
+            @expected_json_result = is_pass_expected( line )
+            @description_tracker.associate_with_json
+            @line_num = line_num
+            @state = READ_STATE::READING_JSON
+        end
+    end
+
+    def reading_jcr( line )
+        if ! is_marker( line )
+            @jcr += line
+        else
+            ungets
+            run_test
+            @state = READ_STATE::SEEKING
+        end
+    end
+
+    def reading_json( line )
+        if ! is_marker( line )
+            @json += line
+        else
+            ungets
+            run_test
+            @state = READ_STATE::SEEKING
+        end
+    end
+
+    def is_discardable_comment( line )
+        return /^#-#/.match( line )
+    end
+
+    def is_description_marker( line )
+        return /^##/.match( line )
+    end
+
+    def get_description( line )
+        if m = /^##\s*(.+)/.match( line )
+            return m[1]
+        end
+        return ''
+    end
+
+    def is_jcr_marker( line )
+        return /^JCR:/.match( line )
+    end
+
+    def is_json_marker( line )
+        return /^JSON:/.match( line )
+    end
+
+    def is_marker( line )
+        return is_description_marker( line ) ||
+                is_jcr_marker( line ) ||
+                is_json_marker( line )
+    end
+
+    def is_pass_expected( line )
+        m = /:\s*(Pass|Fail)/.match( line )
+        abort "Abort: Expected 'Pass' or 'Fail' status in file #{@test_filename} line #{line_num}" if ! m
+        return m[1] == 'Pass'
+    end
+
+    def run_test
+        TestRunner.new( @test_record ).run(
+                filename: @test_filename, line: @line_num,
+                description: @description_tracker.test_description,
+                jcr: @jcr, expected_jcr_result: @expected_jcr_result,
+                json: @json, expected_json_result: @expected_json_result )
+    end
+
+    def gets
+        return @reader.gets
+    end
+
+    def ungets
+        return @reader.ungets
+    end
+
+    def line_num
+        return @reader.line_num
+    end
+end
+
 class LineReader
     # Allow going back one line when reading a file a line at a time
 
@@ -230,142 +366,6 @@ class TestRunner
             # The JCR should already have been tested standalone, so repeat
             # reporting of a JCR error is not required
         end
-    end
-end
-
-class Verify
-    def initialize( test_filename, test_record )
-        @test_filename = test_filename
-        @description_tracker = DescriptionTracker.new
-        @jcr = ''
-        @expected_jcr_result = false
-        @json = nil
-        @expected_json_result = false
-        @test_record = test_record
-        @line_num = 0
-    end
-
-    class READ_STATE
-        SEEKING = 1; READING_JCR = 2; READING_JSON = 3;
-    end
-
-    def verify
-        puts "#{File.basename( @test_filename )}..."
-        LineReader.open( @test_filename ) { |r|
-            @reader = r
-            @state = READ_STATE::SEEKING
-            while( line = gets )
-                if ! is_discardable_comment( line )
-                    case @state
-                    when READ_STATE::SEEKING
-                        seeking( line )
-                    when READ_STATE::READING_JCR
-                        reading_jcr( line )
-                    when READ_STATE::READING_JSON
-                        reading_json( line )
-                    end
-                end
-            end
-            if @state == READ_STATE::READING_JCR || @state == READ_STATE::READING_JSON
-                run_test
-            end
-        }
-    end
-
-    private
-
-    def seeking( line )
-        if is_description_marker( line )
-            @description_tracker.new_description( get_description( line ) )
-        elsif is_jcr_marker( line )
-            @jcr = ''
-            @json = nil
-            @expected_jcr_result = is_pass_expected( line )
-            @description_tracker.associate_with_jcr
-            @line_num = line_num
-            @state = READ_STATE::READING_JCR
-        elsif is_json_marker( line )
-            @json = ''
-            @expected_json_result = is_pass_expected( line )
-            @description_tracker.associate_with_json
-            @line_num = line_num
-            @state = READ_STATE::READING_JSON
-        end
-    end
-
-    def reading_jcr( line )
-        if ! is_marker( line )
-            @jcr += line
-        else
-            ungets
-            run_test
-            @state = READ_STATE::SEEKING
-        end
-    end
-
-    def reading_json( line )
-        if ! is_marker( line )
-            @json += line
-        else
-            ungets
-            run_test
-            @state = READ_STATE::SEEKING
-        end
-    end
-
-    def is_discardable_comment( line )
-        return /^#-#/.match( line )
-    end
-
-    def is_description_marker( line )
-        return /^##/.match( line )
-    end
-
-    def get_description( line )
-        if m = /^##\s*(.+)/.match( line )
-            return m[1]
-        end
-        return ''
-    end
-
-    def is_jcr_marker( line )
-        return /^JCR:/.match( line )
-    end
-
-    def is_json_marker( line )
-        return /^JSON:/.match( line )
-    end
-
-    def is_marker( line )
-        return is_description_marker( line ) ||
-                is_jcr_marker( line ) ||
-                is_json_marker( line )
-    end
-
-    def is_pass_expected( line )
-        m = /:\s*(Pass|Fail)/.match( line )
-        abort "Abort: Expected 'Pass' or 'Fail' status in file #{@test_filename} line #{line_num}" if ! m
-        return m[1] == 'Pass'
-    end
-
-    def run_test
-        TestRunner.new( @test_record ).run(
-                filename: @test_filename, line: @line_num,
-                description: @description_tracker.test_description,
-                jcr: @jcr, expected_jcr_result: @expected_jcr_result,
-                json: @json, expected_json_result: @expected_json_result )
-    end
-
-    def gets
-        return @reader.gets
-    end
-
-    def ungets
-        return @reader.ungets
-    end
-
-    def line_num
-        return @reader.line_num
     end
 end
 
