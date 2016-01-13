@@ -354,18 +354,43 @@ class TestRunner
     def run_json_test
         begin
             jcr_ctx = JCR::Context.new( @jcr )
-            json_tree = JSON.parse( @json )
-            result = jcr_ctx.evaluate( json_tree )
-            if ! @test_record.record( result.success == @expected_json_result )
-                puts "Test failed : #{@description != '' ? @description : ''}"
-                puts "    When checking '#{@json.strip}' against '#{@jcr.strip}'"
-                puts "    Expected #{@expected_json_result ? 'Pass' : 'Fail'}"
-                puts "    File: #{@filename}, line #{@line}"
-            end
         rescue
             # The JCR should already have been tested standalone, so repeat
             # reporting of a JCR error is not required
+            puts "JCR parsing failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+            return
         end
+        if ! /^\s*[\[\{]/.match( @json )
+            puts "Warning: Line #{@line}: Ruby JSON parser only accepts top-level array or object, not #{@json.rstrip}"
+            return
+        end
+        begin
+            json_tree = JSON.parse( @json )
+        rescue
+            puts "JSON parsing failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+            return
+        end
+        is_validation_ok = true
+        begin
+            result = jcr_ctx.evaluate( json_tree, assumed_root )
+            is_validation_ok = result.success
+        rescue
+            is_validation_ok = false
+            puts "JSON JCR validation failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+        end
+        if ! @test_record.record( is_validation_ok == @expected_json_result )
+            puts "Test failed : #{@description != '' ? @description : ''}"
+            puts "    When checking '#{@json.strip}' against '#{@jcr.strip}'"
+            puts "    Expected #{@expected_json_result ? 'Pass' : 'Fail'}"
+            puts "    File: #{@filename}, line #{@line}"
+        end
+    end
+
+    def assumed_root
+        if m = /^\s*(\w+)/.match( @jcr )    # Extract first rule name if present
+            return m[1]
+        end
+        return nil
     end
 end
 
