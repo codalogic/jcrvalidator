@@ -67,7 +67,7 @@ def add_license( fout )
     File.open( __FILE__ ) { |fself|
         while( line = fself.gets )
             break if ! /^#/.match( line )
-            fout.write( "#-" + line )
+            fout.write( line.sub( /^#/, '#--' ) )
         end
         fout.puts
     }
@@ -98,11 +98,11 @@ class Extractor
     private
 
     def scan
-        @fout.puts( "#-# Line: #{@fin.lineno}" ) if $is_logging_enabled
+        @fout.puts( "#-- Line: #{@fin.lineno}" ) if $is_logging_enabled
         while( line = @fin.gets )
             break if m = /\s*end/.match( line )
 
-            @fout.write( '#-# ' + line ) if $is_logging_enabled
+            @fout.write( '#-- ' + line ) if $is_logging_enabled
             if m = /JCR.parse\( '([^']*)'/.match( line )
                 @jcr = m[1]
                 @expected_jcr_result = true

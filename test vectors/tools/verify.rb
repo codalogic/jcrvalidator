@@ -176,7 +176,7 @@ class Verify
     end
 
     def is_discardable_comment( line )
-        return /^#-#/.match( line )
+        return /^#--/.match( line )
     end
 
     def is_description_marker( line )
@@ -355,19 +355,17 @@ class TestRunner
         begin
             jcr_ctx = JCR::Context.new( @jcr )
         rescue
-            # The JCR should already have been tested standalone, so repeat
-            # reporting of a JCR error is not required
-            puts "JCR parsing failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+            puts "JCR parsing failed #{@line} on '#{@jcr.strip}'"
             return
         end
         if ! /^\s*[\[\{]/.match( @json )
-            puts "Warning: Line #{@line}: Ruby JSON parser only accepts top-level array or object, not #{@json.rstrip}"
+            puts "Warning: Line #{@line}: Ruby JSON parser only accepts array or object at top-level, not '#{@json.strip}'"
             return
         end
         begin
             json_tree = JSON.parse( @json )
         rescue
-            puts "JSON parsing failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+            puts "JSON parsing failed #{@line} on '#{@json.strip}'"
             return
         end
         is_validation_ok = true
@@ -376,18 +374,19 @@ class TestRunner
             is_validation_ok = result.success
         rescue
             is_validation_ok = false
-            puts "JSON JCR validation failed #{@line} #{@jcr.rstrip} #{@json.rstrip}"
+            puts "JSON JCR validation failed #{@line} JCR: '#{@jcr.strip}' JSON: '#{@json.strip}'"
         end
         if ! @test_record.record( is_validation_ok == @expected_json_result )
             puts "Test failed : #{@description != '' ? @description : ''}"
             puts "    When checking '#{@json.strip}' against '#{@jcr.strip}'"
             puts "    Expected #{@expected_json_result ? 'Pass' : 'Fail'}"
             puts "    File: #{@filename}, line #{@line}"
+            # puts "    Reason: #{result.reason}" if result
         end
     end
 
     def assumed_root
-        if m = /^\s*(\w+)/.match( @jcr )    # Extract first rule name if present
+        if m = /\A\s*(\w+)/.match( @jcr )    # Extract first rule name if present
             return m[1]
         end
         return nil

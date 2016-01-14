@@ -22,22 +22,27 @@ in the `vetted` directory.
 
 Each test file contains one or more examples of JCR, each of which may have associated 
 with it zero or more examples of JSON.  Each JCR example is preceded
-by a comment decribing what the JCR and JSON instance are intended to test.  
-The test description comment consists of a line that starts with `##` and ends at the
+by a comment decribing what the JCR and JSON instances are intended to test.  
+
+The test description consists of a line that starts with `##` and ends at the
 end of the line.  The
 JCR for a test is identified by a line that starts with the string `JCR:` and is
 followed by either `Pass` or `Fail` depending on whether the JCR is valid or not.
 (White space may be included between the `JCR:` and `Pass` / `Fail` tokens.)
 The actual JCR for a test begins on the following line and continues until another
-test description comment, a `JCR:` declaration or end of file is encountered.  The
-optional JSON for a test is identified by a line that starts with the `JSON:` and
+test description comment, a `JSON:` declaration or end of file is encountered.  The
+optional JSON for a test is identified by a line that starts with `JSON:` and
 is again followed by either `Pass` or `Fail` depending on whether the JSON is valid
 according to the previously defined JCR.  The actual JSON starts on the following
 line, and, as before, is terminated by another test description comment, a `JCR:`
-declaration or an end of file.
+or `JSON:` declaration or an end of file.
+
+Lines containg discardable comments begin with the sequence `#--`.
 
 For example:
 
+    #-- A comment that should be ignored
+    
     ## should allow an array of two integers
     JCR: Pass
         [ 2 : integer ]
