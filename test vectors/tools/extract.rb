@@ -108,6 +108,10 @@ class Extractor
                 @expected_jcr_result = true
             end
 
+            if is_multiline_jcr_start( line )
+                extract_multiline_jcr( line )
+            end
+
             if /expect\{/.match( line ) && /JCR/.match( line ) && /}.to raise_error/.match( line )
                 @expected_jcr_result = false
             end
@@ -122,11 +126,27 @@ class Extractor
         end
     end
 
+    def is_multiline_jcr_start( line )
+        return line =~ /=\s*<</
+    end
+
+    def extract_multiline_jcr( line )
+        if m = /=\s*<<(\w+)/.match( line )
+            end_marker = m[1]
+            while( line = @fin.gets )
+                break if line =~ /^#{end_marker}/
+                @jcr += '    ' if @jcr != ''
+                @jcr += line
+            end
+        end
+    end
+
     def extract_json_from_evaluate_rule( line )
         # Example haystack: e = JCR.evaluate_rule( tree[0], tree[0], [ ], JCR::EvalConditions.new( mapping, nil ) )
         json = line
         json.sub!( /.*JCR.evaluate_rule\([^,]+,[^,]+,/, '' )
         json.sub!( /, JCR::Eval.*/, '' )
+        json.gsub!( /"=>/, '":' )
         @json = json
         @expected_json_result = true
     end
