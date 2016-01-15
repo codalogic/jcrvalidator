@@ -1,0 +1,126 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- Line: 21
+#--     tree = JCR.parse( 'vrule :integer' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 0 )
+## should find no annotated roots with value rule
+JCR: Pass
+    vrule :integer
+
+#-- Line: 27
+#--     tree = JCR.parse( 'vrule "member" :integer' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 0 )
+## should find no annotated roots with member rule
+JCR: Pass
+    vrule "member" :integer
+
+#-- Line: 33
+#--     tree = JCR.parse( 'vrule [ *:integer ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 0 )
+## should find no annotated roots with array rule
+JCR: Pass
+    vrule [ *:integer ]
+
+#-- Line: 39
+#--     tree = JCR.parse( 'vrule @(root) [ *:integer ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 1 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].name ).to eq( "vrule" )
+#--     expect( roots[0].nameless ).to be_falsey
+#--     expect( roots[0].rule ).to be_an( Hash )
+#--     expect( roots[0].rule[:rule] ).to be_truthy
+## should find an annotated rule
+JCR: Pass
+    vrule @(root) [ *:integer ]
+
+#-- Line: 50
+#--     tree = JCR.parse( 'vrule [ * @(root) :integer ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 1 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].nameless ).to be_truthy
+## should find an embedded annotated rule
+JCR: Pass
+    vrule [ * @(root) :integer ]
+
+#-- Line: 58
+#--     tree = JCR.parse( 'vrule [ * [ * @(root) :integer ] ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 1 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].nameless ).to be_truthy
+#--     expect( roots[0].rule ).to be_an( Array )
+## should find a sub embedded annotated rule
+JCR: Pass
+    vrule [ * [ * @(root) :integer ] ]
+
+#-- Line: 67
+#--     tree = JCR.parse( 'vrule [ * @(root) [ * @(root) :integer ] ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 2 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].nameless ).to be_truthy
+#--     expect( roots[0].rule ).to be_an( Array )
+## should find two sub embedded annotated rule
+JCR: Pass
+    vrule [ * @(root) [ * @(root) :integer ] ]
+
+#-- Line: 76
+#--     tree = JCR.parse( '[ * [ * :integer ] ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 1 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].nameless ).to be_truthy
+#--     expect( roots[0].rule ).to be_an( Hash )
+## should find top level unnamed rule as root
+JCR: Pass
+    [ * [ * :integer ] ]
+
+#-- Line: 85
+#--     tree = JCR.parse( '[ * [ * @(root):integer ] ]' )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 2 )
+#--     expect( roots[0] ).to be_an( JCR::Root )
+#--     expect( roots[0].nameless ).to be_truthy
+#--     expect( roots[0].rule ).to be_an( Hash )
+## should find top level unnamed rule as root and embedded
+JCR: Pass
+    [ * [ * @(root):integer ] ]
+
+#-- Line: 94
+#--     ex7 = <<EX7
+#--     tree = JCR.parse( ex7 )
+#--     roots = JCR.find_roots( tree )
+#--     expect( roots.length ).to eq( 3 )
+## should find multiple roots
+JCR: Fail
+    # ruleset-id http://blah.com
+    {
+        "Image" {
+            width, height, "Title" :string,
+            "thumbnail" @(root) { width, height, "Url" :uri },
+            "IDs" ids
+        }
+    }
+    
+    width "width" : 0..1280
+    height "height" : 0..1024
+    ids @(root) [ *:integer ]
+    
+

@@ -1,0 +1,182 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- Line: 24
+#--     tree = JCR.parse( '{ mrule } mrule "mname" :any' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "mname"=> "anything" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with string and any value
+JCR: Pass
+    { mrule } mrule "mname" :any
+JSON: Pass
+     { "mname": "anything" }
+
+#-- Line: 32
+#--     tree = JCR.parse( '{ mrule } mrule @(reject) "mname" :any' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "mname"=> "anything" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with string and any value with reject
+JCR: Pass
+    { mrule } mrule @(reject) "mname" :any
+JSON: Fail
+     { "mname": "anything" }
+
+#-- Line: 40
+#--     tree = JCR.parse( '{ mrule } mrule "mname" :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "mname"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with string and an integer
+JCR: Pass
+    { mrule } mrule "mname" :integer
+JSON: Pass
+     { "mname": 2 }
+
+#-- Line: 48
+#--     tree = JCR.parse( '{ mrule } mrule "mname" :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with mismatch string and an integer
+JCR: Pass
+    { mrule } mrule "mname" :integer
+JSON: Fail
+     { "blah": 2 }
+
+#-- Line: 56
+#--     tree = JCR.parse( '{ mrule } mrule @(reject) "mname" :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with mismatch string and an integer with reject
+JCR: Pass
+    { mrule } mrule @(reject) "mname" :integer
+JSON: Pass
+     { "blah": 2 }
+
+#-- Line: 64
+#--     tree = JCR.parse( '{ mrule } mrule "mname" :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "mname"=> "a string" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with string and an integer against member with string
+JCR: Pass
+    { mrule } mrule "mname" :integer
+JSON: Fail
+     { "mname": "a string" }
+
+#-- Line: 72
+#--     tree = JCR.parse( '{ mrule } mrule "mname" :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> "a string" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with mismatch string and an integer against member with string
+JCR: Pass
+    { mrule } mrule "mname" :integer
+JSON: Fail
+     { "blah": "a string" }
+
+#-- Line: 84
+#--     tree = JCR.parse( '{ mrule } mrule /ab.*/ :any' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "abc"=> "anything" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with regex and any value
+JCR: Pass
+    { mrule } mrule /ab.*/ :any
+JSON: Pass
+     { "abc": "anything" }
+
+#-- Line: 92
+#--     tree = JCR.parse( '{ mrule } mrule @(reject) /ab.*/ :any' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "abc"=> "anything" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with regex and any value with reject
+JCR: Pass
+    { mrule } mrule @(reject) /ab.*/ :any
+JSON: Fail
+     { "abc": "anything" }
+
+#-- Line: 100
+#--     tree = JCR.parse( '{ mrule } mrule /ab*/ :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "abc"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with regex and an integer
+JCR: Pass
+    { mrule } mrule /ab*/ :integer
+JSON: Pass
+     { "abc": 2 }
+
+#-- Line: 108
+#--     tree = JCR.parse( '{ mrule } mrule /ab.*/ :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with mismatch regex and an integer
+JCR: Pass
+    { mrule } mrule /ab.*/ :integer
+JSON: Fail
+     { "blah": 2 }
+
+#-- Line: 116
+#--     tree = JCR.parse( '{ mrule } mrule @(reject) /ab.*/ :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> 2 }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a member with mismatch regex and an integer with reject
+JCR: Pass
+    { mrule } mrule @(reject) /ab.*/ :integer
+JSON: Pass
+     { "blah": 2 }
+
+#-- Line: 124
+#--     tree = JCR.parse( '{ mrule } mrule /ab.*/ :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "abc"=> "a string" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with regex and an integer against member with string
+JCR: Pass
+    { mrule } mrule /ab.*/ :integer
+JSON: Fail
+     { "abc": "a string" }
+
+#-- Line: 132
+#--     tree = JCR.parse( '{ mrule } mrule /ab.*/ :integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], { "blah"=> "a string" }, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a member with mismatch regex and an integer against member with string
+JCR: Pass
+    { mrule } mrule /ab.*/ :integer
+JSON: Fail
+     { "blah": "a string" }
+

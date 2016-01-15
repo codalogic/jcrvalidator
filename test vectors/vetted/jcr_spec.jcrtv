@@ -1,0 +1,162 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- Line: 22
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ *:integer ]
+JSON: Pass
+    [ 2, 2, 2 ]
+
+#-- Line: 35
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_falsey
+## should fail defualt rule
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ *:string ]
+JSON: Fail
+    [ 2, 2, 2 ]
+
+#-- Line: 48
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule referencing another rule
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ * my_rule ]
+    my_rule :0..2
+JSON: Pass
+    [ 2, 2, 2 ]
+
+#-- Line: 62
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( data, ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule referencing two rules with JSON
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+JSON: Pass
+    [ 1, 2, "foo", "bar" ]
+
+#-- Line: 78
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+## should initialize a context and evaluate JSON
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+JSON: Pass
+    [ 1, 2, "foo", "bar" ]
+
+#-- Line: 93
+#--     ex = <<EX
+#--     data1 = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     data2 = JSON.parse( '[ 2, 1, "bar", "foo" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     e = ctx.evaluate( data1 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data2 )
+#--     expect( e.success ).to be_truthy
+## should initialize a context and evaluate two JSONs
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+JSON: Pass
+    [ 1, 2, "foo", "bar" ]
+JSON: Pass
+    [ 2, 1, "bar", "foo" ]
+
+#-- Line: 112
+#--     ex = <<EX
+#--     data1 = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     data2 = JSON.parse( '[ 2, 1, "bar", "foo" ]')
+#--     data3 = JSON.parse( '[ 1, 20000, "foo", "bar" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     e = ctx.evaluate( data1 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data2 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data3 )
+#--     expect( e.success ).to be_falsey
+## should initialize a context and evaluate two JSONs and fail a third
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+JSON: Pass
+    [ 1, 2, "foo", "bar" ]
+JSON: Pass
+    [ 2, 1, "bar", "foo" ]
+JSON: Fail
+    [ 1, 20000, "foo", "bar" ]
+
+#-- Line: 196
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+#--     e = JCR::Context.new( ex ).evaluate( data, "oroot" )
+#--     expect( e.success ).to be_falsey
+#--     data = JSON.parse( '[ "foo", "bar", 1, 2 ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+#--     e = JCR::Context.new( ex ).evaluate( data, "oroot" )
+#--     expect( e.success ).to be_truthy
+## should evaluate JSON against multiple roots
+JCR: Pass
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    oroot @(root) [ 2 my_strings, 2 my_integers ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+JSON: Pass
+    [ 1, 2, "foo", "bar" ]

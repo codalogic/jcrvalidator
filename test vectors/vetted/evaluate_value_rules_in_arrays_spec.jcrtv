@@ -1,0 +1,1039 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- These test are derived from evaluate_value_rules_spec.jcrtv but are
+#-- modified to place the values in arrays so that they can work on JSON
+#-- parsers that don't allow primitive values (non-object / non-array) rules
+#-- at the top-level.
+
+#-- Line: 25
+#--     tree = JCR.parse( 'trule : any' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "a string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass when any rule matches a string constant
+JCR: Pass
+    [ trule ] trule : any
+JSON: Pass
+     [ "a string constant" ]
+
+#-- Line: 61
+#--     tree = JCR.parse( 'trule : "a string constant"' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "a string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass when a string matches a string constant
+JCR: Pass
+    [ trule ] trule : "a string constant"
+JSON: Pass
+     [ "a string constant" ]
+
+#-- Line: 69
+#--     tree = JCR.parse( 'trule @(reject) : "a string constant"' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "a string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail when a string matches a string constant with reject
+JCR: Pass
+    [ trule ] trule @(reject) : "a string constant"
+JSON: Fail
+     [ "a string constant" ]
+
+#-- Line: 77
+#--     tree = JCR.parse( 'trule : "a string constant"' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "another string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail when a string does not match a string constant
+JCR: Pass
+    [ trule ] trule : "a string constant"
+JSON: Fail
+     [ "another string constant" ]
+
+#-- Line: 85
+#--     tree = JCR.parse( 'trule : string' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "a string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a string variable
+JCR: Pass
+    [ trule ] trule : string
+JSON: Pass
+     [ "a string constant" ]
+
+#-- Line: 93
+#--     tree = JCR.parse( 'trule : "a string constant"' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "another string constant", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a string variable defined as a constant
+JCR: Pass
+    [ trule ] trule : "a string constant"
+JSON: Fail
+    [ "another string constant" ]
+
+#-- Line: 105
+#--     tree = JCR.parse( 'trule : integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an integer variable
+JCR: Pass
+    [ trule ] trule : integer
+JSON: Pass
+    [  2 ]
+
+#-- Line: 113
+#--     tree = JCR.parse( 'trule : integer' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer variable when passed a string
+JCR: Pass
+    [ trule ] trule : integer
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 121
+#--     tree = JCR.parse( 'trule : 3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 3, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an integer variable matching a constant
+JCR: Pass
+    [ trule ] trule : 3
+JSON: Pass
+    [ 3 ]
+
+#-- Line: 129
+#--     tree = JCR.parse( 'trule : 3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer variable not matching a constant
+JCR: Pass
+    [ trule ] trule : 3
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 137
+#--     tree = JCR.parse( 'trule : 3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer variable when passed a string
+JCR: Pass
+    [ trule ] trule : 3
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 145
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an integer within a range
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Pass
+    [ 2 ]
+
+#-- Line: 153
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 0, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer below a range
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Fail
+    [ 0 ]
+
+#-- Line: 161
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 4, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer above a range
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Fail
+    [ 4 ]
+
+#-- Line: 169
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an integer at the min of a range
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Pass
+    [ 1 ]
+
+#-- Line: 177
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 3, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an integer at the max of a range
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Pass
+    [ 3 ]
+
+#-- Line: 185
+#--     tree = JCR.parse( 'trule : 1..3' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an integer range when passed a string
+JCR: Pass
+    [ trule ] trule : 1..3
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 197
+#--     tree = JCR.parse( 'trule : float' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an float variable
+JCR: Pass
+    [ trule ] trule : float
+JSON: Pass
+    [ 2.1 ]
+
+#-- Line: 205
+#--     tree = JCR.parse( 'trule : float' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float variable when passed a string
+JCR: Pass
+    [ trule ] trule : float
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 213
+#--     tree = JCR.parse( 'trule : 3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 3.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a float variable matching a constant
+JCR: Pass
+    [ trule ] trule : 3.1
+JSON: Pass
+    [ 3.1 ]
+
+#-- Line: 221
+#--     tree = JCR.parse( 'trule : 3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float variable not matching a constant
+JCR: Pass
+    [ trule ] trule : 3.1
+JSON: Fail
+     [2.1 ]
+
+#-- Line: 229
+#--     tree = JCR.parse( 'trule : 3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float exact when passed a string
+JCR: Pass
+    [ trule ] trule : 3.1
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 237
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an float within a range
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Pass
+    [ 2.1 ]
+
+#-- Line: 245
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 0.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float below a range
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Fail
+    [ 0.1 ]
+
+#-- Line: 253
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 4.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float above a range
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Fail
+    [ 4.1 ]
+
+#-- Line: 261
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 1.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an float at the min of a range
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Pass
+    [ 1.1 ]
+
+#-- Line: 269
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 3.1, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an float at the max of a range
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Pass
+    [ 3.1 ]
+
+#-- Line: 277
+#--     tree = JCR.parse( 'trule : 1.1..3.1' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "foo", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an float range when passed a string
+JCR: Pass
+    [ trule ] trule : 1.1..3.1
+JSON: Fail
+    [ "foo" ]
+
+#-- Line: 289
+#--     tree = JCR.parse( 'trule : boolean' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], false, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a false as a boolean
+JCR: Pass
+    [ trule ] trule : boolean
+JSON: Pass
+    [ false ]
+
+#-- Line: 297
+#--     tree = JCR.parse( 'trule : boolean' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], true, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a true as a boolean
+JCR: Pass
+    [ trule ] trule : boolean
+JSON: Pass
+    [ true ]
+
+#-- Line: 305
+#--     tree = JCR.parse( 'trule : true' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], true, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a true as a true
+JCR: Pass
+    [ trule ] trule : true
+JSON: Pass
+    [ true ]
+
+#-- Line: 313
+#--     tree = JCR.parse( 'trule : false' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], false, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a false as a false
+JCR: Pass
+    [ trule ] trule : false
+JSON: Pass
+    [ false ]
+
+#-- Line: 321
+#--     tree = JCR.parse( 'trule : true' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], false, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a false as a true
+JCR: Pass
+    [ trule ] trule : true
+JSON: Fail
+    [ false ]
+
+#-- Line: 329
+#--     tree = JCR.parse( 'trule : false' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], true, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a true as a false
+JCR: Pass
+    [ trule ] trule : false
+JSON: Fail
+    [ true ]
+
+#-- Line: 341
+#--     tree = JCR.parse( 'trule : null' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], nil, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a null
+JCR: Pass
+    [ trule ] trule : null
+JSON: Pass
+    [ null ]
+
+#-- Line: 349
+#--     tree = JCR.parse( 'trule @(reject) : null' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], nil, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a null with reject
+JCR: Pass
+    [ trule ] trule @(reject) : null
+JSON: Fail
+    [ null ]
+
+#-- Line: 361
+#--     tree = JCR.parse( 'trule : /[a-z]*/' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "aaa", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a string matching a regular expression
+JCR: Pass
+    [ trule ] trule : /[a-z]*/
+JSON: Pass
+    [ "aaa" ]
+
+#-- Line: 369
+#--     tree = JCR.parse( 'trule : /[a-z]*/' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "AAA", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should fail a string not matching a regular expression
+JCR: Pass
+    [ trule ] trule : /[a-z]*/
+JSON: Pass
+    [ "AAA" ]
+
+#-- Line: 377
+#--     tree = JCR.parse( 'trule : /[a-z]*/' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a number not matching a regular expression
+JCR: Pass
+    [ trule ] trule : /[a-z]*/
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 389
+#--     tree = JCR.parse( 'trule : ip4' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "192.1.1.1", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an IPv4 address that matches
+JCR: Pass
+    [ trule ] trule : ip4
+JSON: Pass
+    [ "192.1.1.1" ]
+
+#-- Line: 397
+#--     tree = JCR.parse( 'trule : ip4' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "192.1.1.1.1.1.1", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv4 address that does not match
+JCR: Pass
+    [ trule ] trule : ip4
+JSON: Fail
+    [ "192.1.1.1.1.1.1" ]
+
+#-- Line: 405
+#--     tree = JCR.parse( 'trule : ip4' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv4 address that is not a string
+JCR: Pass
+    [ trule ] trule : ip4
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 413
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "192.1.1.1", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv4 address that is suppose to be an IPv6 address
+JCR: Pass
+    [ trule ] trule : ip6
+JSON: Fail
+    [ "192.1.1.1" ]
+
+#-- Line: 421
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "2001:0000::1", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an IPv6 address that matches
+JCR: Pass
+    [ trule ] trule : ip6
+JSON: Pass
+    [ "2001:0000::1" ]
+
+#-- Line: 429
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "2001:0000:0000:0000:0000:0000:0000:0001", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a fully expanded IPv6 address that matches
+JCR: Pass
+    [ trule ] trule : ip6
+JSON: Pass
+    [ "2001:0000:0000:0000:0000:0000:0000:0001" ]
+
+#-- Line: 437
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "2001:0000::1....", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv6 address that does not match
+JCR: Pass
+    [ trule ] trule : ip6
+JSON: Fail
+    [ "2001:0000::1...." ]
+
+#-- Line: 445
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], [], JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv6 address that is not a string
+JCR: Pass
+    [ trule ] trule : ip6
+JSON: Fail
+     [2]
+
+#-- Line: 453
+#--     tree = JCR.parse( 'trule : ip4' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "2001:0000::1", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an IPv6 address that is suppose to be an IPv4 address
+JCR: Pass
+    [ trule ] trule : ip4
+JSON: Fail
+    [ "2001:0000::1" ]
+
+#-- Line: 465
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass fqdn as fqdn
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Pass
+    [ "www.example.com" ]
+
+#-- Line: 473
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 22, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a domain label that is not a string
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Fail
+    [ 22 ]
+
+#-- Line: 481
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.-example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a domain label starting with a dash
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Fail
+    [ "www.-example.com" ]
+
+#-- Line: 489
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.example-.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a domain label ending with a dash
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Fail
+    [ "www.example-.com" ]
+
+#-- Line: 497
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.example_fail.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a domain label containgin an underscore
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Fail
+    [ "www.example_fail.com" ]
+
+#-- Line: 505
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.e\u0092xample.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass idn as idn
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Pass
+    [ "www.e\u0092xample.com" ]
+
+#-- Line: 513
+#--     tree = JCR.parse( 'trule : fqdn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.e\u0092xample.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an idn as fqdn
+JCR: Pass
+    [ trule ] trule : fqdn
+JSON: Fail
+    [ "www.e\u0092xample.com" ]
+
+#-- Line: 521
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a fqdn as idn
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Pass
+    [ "www.example.com" ]
+
+#-- Line: 529
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.-e\u0092xample.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an idn label starting with a dash
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Fail
+    [ "www.-e\u0092xample.com" ]
+
+#-- Line: 537
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an idn that is not a string
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 545
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.e\u0092xample-.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a idn label ending with a dash
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Fail
+    [ "www.e\u0092xample-.com" ]
+
+#-- Line: 553
+#--     tree = JCR.parse( 'trule : idn' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "www.e\u0092xample_fail.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an idn label containgin an underscore
+JCR: Pass
+    [ trule ] trule : idn
+JSON: Fail
+    [ "www.e\u0092xample_fail.com" ]
+
+#-- Line: 565
+#--     tree = JCR.parse( 'trule : uri' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "http://example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a URI
+JCR: Pass
+    [ trule ] trule : uri
+JSON: Pass
+    [ "http://example.com" ]
+
+#-- Line: 573
+#--     tree = JCR.parse( 'trule : uri' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a URI that is not a string
+JCR: Pass
+    [ trule ] trule : uri
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 581
+#--     tree = JCR.parse( 'trule : uri..http://example.com/{?query*}' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "http://example.com/?foo=bar", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a URI template
+JCR: Pass
+    [ trule ] trule : uri..http://example.com/{?query*}
+JSON: Pass
+    [ "http://example.com/?foo=bar" ]
+
+#-- Line: 589
+#--     tree = JCR.parse( 'trule : uri..http://example.com/{?query*}' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "http://example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a non-matching URI template
+JCR: Pass
+    [ trule ] trule : uri..http://example.com/{?query*}
+JSON: Fail
+    [ "http://example.com" ]
+
+#-- Line: 597
+#--     tree = JCR.parse( 'trule : uri..http://example.com/{?query*}' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], {}, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a non-string against URI template
+JCR: Pass
+    [ trule ] trule : uri..http://example.com/{?query*}
+JSON: Fail
+    [ {} ]
+
+#-- Line: 609
+#--     tree = JCR.parse( 'trule : email' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "example@example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass an email address match
+JCR: Pass
+    [ trule ] trule : email
+JSON: Pass
+    [ "example@example.com" ]
+
+#-- Line: 617
+#--     tree = JCR.parse( 'trule : email' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "example@example@example.com", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an email address mismatch
+JCR: Pass
+    [ trule ] trule : email
+JSON: Fail
+    [ "example@example@example.com" ]
+
+#-- Line: 625
+#--     tree = JCR.parse( 'trule : email' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail an email address when it is not a string
+JCR: Pass
+    [ trule ] trule : email
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 637
+#--     tree = JCR.parse( 'trule : phone' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "+34634976090", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a phone number match
+JCR: Pass
+    [ trule ] trule : phone
+JSON: Pass
+    [ "+34634976090" ]
+
+#-- Line: 645
+#--     tree = JCR.parse( 'trule : phone' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "123", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a phone number mismatch
+JCR: Pass
+    [ trule ] trule : phone
+JSON: Fail
+    [ "123" ]
+
+#-- Line: 653
+#--     tree = JCR.parse( 'trule : phone' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a phone number when a non-string datatype is given
+JCR: Pass
+    [ trule ] trule : phone
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 665
+#--     tree = JCR.parse( 'trule : base64' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "VGVzdA==", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a base64 string
+JCR: Pass
+    [ trule ] trule : base64
+JSON: Pass
+    [ "VGVzdA==" ]
+
+#-- Line: 673
+#--     tree = JCR.parse( 'trule : base64' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a number that is not a base64 string
+JCR: Pass
+    [ trule ] trule : base64
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 681
+#--     tree = JCR.parse( 'trule : base64' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "VGVzdA%==", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a string with illegal base64 characters
+JCR: Pass
+    [ trule ] trule : base64
+JSON: Fail
+    [ "VGVzdA%==" ]
+
+#-- Line: 689
+#--     tree = JCR.parse( 'trule : base64' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "VGVzdA==aaa", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a string with base64 characters after padding
+JCR: Pass
+    [ trule ] trule : base64
+JSON: Fail
+    [ "VGVzdA==aaa" ]
+
+#-- Line: 701
+#--     tree = JCR.parse( 'trule : date-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "1985-04-12T23:20:50.52Z", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a date-time string
+JCR: Pass
+    [ trule ] trule : date-time
+JSON: Pass
+    [ "1985-04-12T23:20:50.52Z" ]
+
+#-- Line: 709
+#--     tree = JCR.parse( 'trule : date-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a number being passed as date-time
+JCR: Pass
+    [ trule ] trule : date-time
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 717
+#--     tree = JCR.parse( 'trule : date-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "1985-04-12T23.20.50.52Z", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a badly formatted date-time
+JCR: Pass
+    [ trule ] trule : date-time
+JSON: Fail
+    [ "1985-04-12T23.20.50.52Z" ]
+
+#-- Line: 725
+#--     tree = JCR.parse( 'trule : full-date' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "1985-04-12", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a full-date string
+JCR: Pass
+    [ trule ] trule : full-date
+JSON: Pass
+    [ "1985-04-12" ]
+
+#-- Line: 733
+#--     tree = JCR.parse( 'trule : full-date' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a number being passed as full-date
+JCR: Pass
+    [ trule ] trule : full-date
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 741
+#--     tree = JCR.parse( 'trule : full-date' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "1985-14-12", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a badly formatted full-date
+JCR: Pass
+    [ trule ] trule : full-date
+JSON: Fail
+    [ "1985-14-12" ]
+
+#-- Line: 749
+#--     tree = JCR.parse( 'trule : full-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "23:20:50.52", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_truthy
+## should pass a full-time string
+JCR: Pass
+    [ trule ] trule : full-time
+JSON: Pass
+    [ "23:20:50.52" ]
+
+#-- Line: 757
+#--     tree = JCR.parse( 'trule : full-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a number being passed as full-time
+JCR: Pass
+    [ trule ] trule : full-time
+JSON: Fail
+    [ 2 ]
+
+#-- Line: 765
+#--     tree = JCR.parse( 'trule : full-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "23.20.50.52Z", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a badly formatted full-time with Z
+JCR: Pass
+    [ trule ] trule : full-time
+JSON: Fail
+    [ "23.20.50.52Z" ]
+
+#-- Line: 773
+#--     tree = JCR.parse( 'trule : full-time' )
+#--     mapping = JCR.map_rule_names( tree )
+#--     JCR.check_rule_target_names( tree, mapping )
+#--     e = JCR.evaluate_rule( tree[0], tree[0], "24.20.50.52", JCR::EvalConditions.new( mapping, nil ) )
+#--     expect( e.success ).to be_falsey
+## should fail a badly formatted full-time with bad-data
+JCR: Pass
+    [ trule ] trule : full-time
+JSON: Fail
+    [ "24.20.50.52" ]
+

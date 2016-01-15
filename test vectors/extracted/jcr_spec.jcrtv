@@ -1,0 +1,317 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- Line: 22
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ *:integer ]
+    
+JSON: Pass
+        e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+
+#-- Line: 35
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_falsey
+## should fail defualt rule
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ *:string ]
+    
+JSON: Fail
+        e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+
+#-- Line: 48
+#--     ex = <<EX
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule referencing another rule
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ * my_rule ]
+    my_rule :0..2
+    
+JSON: Pass
+        e = JCR.evaluate_ruleset( [ 2, 2, 2 ], ctx )
+
+#-- Line: 62
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     ctx = JCR.ingest_ruleset( ex )
+#--     e = JCR.evaluate_ruleset( data, ctx )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule referencing two rules with JSON
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+JSON: Pass
+        e = JCR.evaluate_ruleset( data, ctx )
+
+#-- Line: 78
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+## should initialize a context and evaluate JSON
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 93
+#--     ex = <<EX
+#--     data1 = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     data2 = JSON.parse( '[ 2, 1, "bar", "foo" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     e = ctx.evaluate( data1 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data2 )
+#--     expect( e.success ).to be_truthy
+## should initialize a context and evaluate two JSONs
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 112
+#--     ex = <<EX
+#--     data1 = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     data2 = JSON.parse( '[ 2, 1, "bar", "foo" ]')
+#--     data3 = JSON.parse( '[ 1, 20000, "foo", "bar" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     e = ctx.evaluate( data1 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data2 )
+#--     expect( e.success ).to be_truthy
+#--     e = ctx.evaluate( data3 )
+#--     expect( e.success ).to be_falsey
+## should initialize a context and evaluate two JSONs and fail a third
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 134
+#--     ex = <<EX
+#--     ov = <<OV
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     ctx.override!( ov )
+#--     e = ctx.evaluate( data )
+#--     expect( e.success ).to be_truthy
+## should pass defualt rule referencing two rules with JSON and override
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :integer
+    my_strings ( :"foo" | :"bar" )
+    
+    my_integers :0..2
+
+#-- Line: 154
+#--     ex = <<EX
+#--     ov = <<OV
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     ctx.override!( ov )
+#--     e = ctx.evaluate( data )
+#--     expect( e.success ).to be_falsey
+## should fail defualt rule referencing two rules with JSON and override!
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :integer
+    my_strings ( :"foo" | :"bar" )
+    
+    my_integers :0..1
+
+#-- Line: 174
+#--     ex = <<EX
+#--     ov = <<OV
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     ctx = JCR::Context.new( ex )
+#--     new_ctx = ctx.override( ov )
+#--     e = ctx.evaluate( data )
+#--     expect( e.success ).to be_truthy
+#--     e = new_ctx.evaluate( data )
+#--     expect( e.success ).to be_falsey
+## should fail defualt rule referencing two rules with JSON and override!
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :integer
+    my_strings ( :"foo" | :"bar" )
+    
+    my_integers :0..1
+
+#-- Line: 196
+#--     ex = <<EX
+#--     data = JSON.parse( '[ 1, 2, "foo", "bar" ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+#--     e = JCR::Context.new( ex ).evaluate( data, "oroot" )
+#--     expect( e.success ).to be_falsey
+#--     data = JSON.parse( '[ "foo", "bar", 1, 2 ]')
+#--     e = JCR::Context.new( ex ).evaluate( data )
+#--     expect( e.success ).to be_truthy
+#--     e = JCR::Context.new( ex ).evaluate( data, "oroot" )
+#--     expect( e.success ).to be_truthy
+## should evaluate JSON against multiple roots
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    oroot @(root) [ 2 my_strings, 2 my_integers ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 219
+#--     ex = <<EX
+#--     my_eval_count = 0
+#--     c = Proc.new do |on|
+#--       on.rule_eval_true do |jcr,data|
+#--         my_eval_count = my_eval_count + 1
+#--         true
+## should callback eval_true once
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 1*2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 244
+#--     ex = <<EX
+#--     my_eval_count = 0
+#--     c = Proc.new do |on|
+#--       on.rule_eval_true do |jcr,data|
+#--         my_eval_count = my_eval_count + 1
+#--         true
+## should callback eval_true twice
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 269
+#--     ex = <<EX
+#--     my_eval_count = 0
+#--     c = Proc.new do |on|
+#--       on.rule_eval_false do |jcr,data,e|
+#--         my_eval_count = my_eval_count + 1
+#--         e
+## should callback eval_false once
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 294
+#--     ex = <<EX
+#--     my_eval_count = 0
+#--     c = Proc.new do |on|
+#--       on.rule_eval_false do |jcr,data,e|
+#--         my_eval_count = my_eval_count + 1
+#--         true
+## should callback eval_false twice by changing return value
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    my_integers :0..2
+    my_strings ( :"foo" | :"bar" )
+    
+
+#-- Line: 319
+#--     ruleset = <<RULESET
+#-- 
+#--     # Create a JCR context.
+#--     ctx = JCR::Context.new( ruleset )
+#-- 
+#--     # A local variable used in the callback closure
+#--     my_eval_count = 0
+#-- 
+#--     # The callback is created using a Proc object
+#--     c = Proc.new do |on|
+#--       validate = false
+#-- 
+#--       # called if the rule evaluates to true
+#--       # jcr is the rule
+#--       # data is the data being evaluated against the rule
+#--       on.rule_eval_true do |jcr,data|
+#--         my_eval_count = my_eval_count + 1
+#--         # return true if even number
+#--         validate = data.to_i % 2 == 0
+## should use callback to evaluate even numbers
+JCR: Fail
+    # ruleset-id rfcXXXX
+    # jcr-version 0.5
+    
+    [ 2 my_integers, 2 my_strings ]
+    
+    ; this will be the rule we custom validate
+    my_integers :0..4
+    
+    my_strings ( :"foo" | :"bar" )
+    
+

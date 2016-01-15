@@ -1,0 +1,1557 @@
+#-- Copyright (C) 2016 American Registry for Internet Numbers (ARIN)
+#--
+#-- Permission to use, copy, modify, and/or distribute this software for any
+#-- purpose with or without fee is hereby granted, provided that the above
+#-- copyright notice and this permission notice appear in all copies.
+#--
+#-- THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#-- WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#-- MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#-- ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#-- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#-- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+#-- IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+#-- Line: 23
+#--     begin
+#--       tree = JCR.parse( 'trule : ip4' )
+#--         expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--         expect(tree[0][:rule][:primitive_rule][:ip4]).to eq("ip4")
+#--       rescue Parslet::ParseFailed => failure
+#-- 
+#--         puts failure.cause.ascii_tree
+## should parse an ip4 value defintion 1
+JCR: Pass
+    trule : ip4
+
+#-- Line: 35
+#--     tree = JCR.parse( 'trule : ip4' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:ip4]).to eq("ip4")
+## should parse an ip4 value defintion 1
+JCR: Pass
+    trule : ip4
+
+#-- Line: 41
+#--     tree = JCR.parse( 'trule :ip4' )
+#--     expect(tree[0][:rule][:primitive_rule][:ip4]).to eq("ip4")
+## should parse an ip4 value defintion 2
+JCR: Pass
+    trule :ip4
+
+#-- Line: 46
+#--     tree = JCR.parse( 'trule : ip4 ' )
+#--     expect(tree[0][:rule][:primitive_rule][:ip4]).to eq("ip4")
+## should parse an ip4 value defintion 3
+JCR: Pass
+    trule : ip4 
+
+#-- Line: 51
+#--     tree = JCR.parse( 'trule : ip6' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:ip6]).to eq("ip6")
+## should parse an ip6 value defintion 1
+JCR: Pass
+    trule : ip6
+
+#-- Line: 56
+#--     tree = JCR.parse( 'trule :ip6' )
+#--     expect(tree[0][:rule][:primitive_rule][:ip6]).to eq("ip6")
+## should parse an ip6 value defintion 2
+JCR: Pass
+    trule :ip6
+
+#-- Line: 60
+#--     tree = JCR.parse( 'trule : ip6 ' )
+#--     expect(tree[0][:rule][:primitive_rule][:ip6]).to eq("ip6")
+## should parse an ip6 value defintion 3
+JCR: Pass
+    trule : ip6 
+
+#-- Line: 65
+#--     tree = JCR.parse( 'trule : "a string constant"' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:q_string]).to eq("a string constant")
+## should parse a string constant
+JCR: Pass
+    trule : "a string constant"
+
+#-- Line: 71
+#--     tree = JCR.parse( 'trule : string' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:string]).to eq("string")
+## should parse a string
+JCR: Pass
+    trule : string
+
+#-- Line: 77
+#--     tree = JCR.parse( 'trule : /a.regex.goes.here.*/' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex.goes.here.*")
+## should parse a regex 1
+JCR: Pass
+    trule : /a.regex.goes.here.*/
+
+#-- Line: 83
+#--     tree = JCR.parse( 'trule : /a.regex\\.goes.here.*/' )
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex\\.goes.here.*")
+## should parse a regex 2
+JCR: Pass
+    trule : /a.regex\\.goes.here.*/
+
+#-- Line: 88
+#--     tree = JCR.parse( 'trule : /a.regex\\.goes.here.*/i' )
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex\\.goes.here.*")
+#--     expect(tree[0][:rule][:primitive_rule][:regex_modifiers]).to eq("i")
+## should parse a regex with a modifier
+JCR: Pass
+    trule : /a.regex\\.goes.here.*/i
+
+#-- Line: 94
+#--     tree = JCR.parse( 'trule : /a.regex\\.goes.here.*/ixs' )
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex\\.goes.here.*")
+#--     expect(tree[0][:rule][:primitive_rule][:regex_modifiers]).to eq("ixs")
+## should parse a regex with a multiple modifiers
+JCR: Pass
+    trule : /a.regex\\.goes.here.*/ixs
+
+#-- Line: 100
+#--     tree = JCR.parse( 'trule : /a.regex.goes.here.*/context : integer' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex.goes.here.*")
+#--     expect(tree[0][:rule][:primitive_rule][:regex_modifiers]).to eq([])
+#--     expect(tree[1][:rule][:rule_name]).to eq("context")
+## should parse a regex followed by a rule
+JCR: Pass
+    trule : /a.regex.goes.here.*/context : integer
+
+#-- Line: 108
+#--     tree = JCR.parse( 'trule : /a.regex.goes.here.*/sides : integer' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:primitive_rule][:regex]).to eq("a.regex.goes.here.*")
+#--     expect(tree[0][:rule][:primitive_rule][:regex_modifiers]).to eq("si")
+#--     expect(tree[1][:rule][:rule_name]).to eq("des")
+## should parse a regex with modifiers followed by a rule
+JCR: Pass
+    trule : /a.regex.goes.here.*/sides : integer
+
+#-- Line: 116
+#--     tree = JCR.parse( 'trule : uri' )
+#--     expect(tree[0][:rule][:primitive_rule][:uri]).to eq("uri")
+## should parse a uri
+JCR: Pass
+    trule : uri
+
+#-- Line: 121
+#--     tree = JCR.parse( 'trule : uri..{scheme}://example.com/{path}' )
+#--     expect(tree[0][:rule][:primitive_rule][:uri_template]).to eq("{scheme}://example.com/{path}")
+## should parse a uri template
+JCR: Pass
+    trule : uri..{scheme}://example.com/{path}
+
+#-- Line: 126
+#--     tree = JCR.parse( 'trule : uri..http://example.com/{path}' )
+#--     expect(tree[0][:rule][:primitive_rule][:uri_template]).to eq("http://example.com/{path}")
+## should parse a uri template 2
+JCR: Pass
+    trule : uri..http://example.com/{path}
+
+#-- Line: 131
+#--     tree = JCR.parse( 'trule : any' )
+#--     expect(tree[0][:rule][:primitive_rule][:any]).to eq("any")
+## should parse an any
+JCR: Pass
+    trule : any
+
+#-- Line: 136
+#--     tree = JCR.parse( 'trule : true' )
+#--     expect(tree[0][:rule][:primitive_rule][:true_v]).to eq("true")
+## should parse true
+JCR: Pass
+    trule : true
+
+#-- Line: 141
+#--     tree = JCR.parse( 'trule : false' )
+#--     expect(tree[0][:rule][:primitive_rule][:false_v]).to eq("false")
+## should parse false
+JCR: Pass
+    trule : false
+
+#-- Line: 146
+#--     tree = JCR.parse( 'trule : boolean' )
+#--     expect(tree[0][:rule][:primitive_rule][:boolean_v]).to eq("boolean")
+## should parse boolean
+JCR: Pass
+    trule : boolean
+
+#-- Line: 151
+#--     tree = JCR.parse( 'trule : null' )
+#--     expect(tree[0][:rule][:primitive_rule][:null]).to eq("null")
+## should parse null
+JCR: Pass
+    trule : null
+
+#-- Line: 156
+#--     tree = JCR.parse( 'trule : integer' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_v]).to eq("integer")
+## should parse a integer value without a range
+JCR: Pass
+    trule : integer
+
+#-- Line: 161
+#--     tree = JCR.parse( 'trule : 2' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer]).to eq("2")
+## should parse a integer constant
+JCR: Pass
+    trule : 2
+
+#-- Line: 166
+#--     tree = JCR.parse( 'trule : -2' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer]).to eq("-2")
+## should parse a negative integer constant
+JCR: Pass
+    trule : -2
+
+#-- Line: 171
+#--     tree = JCR.parse( 'trule : 0..100' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_min]).to eq("0")
+#--     expect(tree[0][:rule][:primitive_rule][:integer_max]).to eq("100")
+## should parse an integer full range
+JCR: Pass
+    trule : 0..100
+
+#-- Line: 177
+#--     tree = JCR.parse( 'trule : -1..100' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_min]).to eq("-1")
+#--     expect(tree[0][:rule][:primitive_rule][:integer_max]).to eq("100")
+## should parse a negative integer range to positive integer
+JCR: Pass
+    trule : -1..100
+
+#-- Line: 183
+#--     tree = JCR.parse( 'trule : -100..-1' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_min]).to eq("-100")
+#--     expect(tree[0][:rule][:primitive_rule][:integer_max]).to eq("-1")
+## should parse a negative integer full range
+JCR: Pass
+    trule : -100..-1
+
+#-- Line: 189
+#--     tree = JCR.parse( 'trule : 0..' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_min]).to eq("0")
+## should parse an integer range with a min range
+JCR: Pass
+    trule : 0..
+
+#-- Line: 194
+#--     tree = JCR.parse( 'trule : ..100' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_max]).to eq("100")
+## should parse an integer rangge with a max range
+JCR: Pass
+    trule : ..100
+
+#-- Line: 199
+#--     tree = JCR.parse( 'trule : ..-100' )
+#--     expect(tree[0][:rule][:primitive_rule][:integer_max]).to eq("-100")
+## should parse a negative integer range with a max range
+JCR: Pass
+    trule : ..-100
+
+#-- Line: 204
+#--     tree = JCR.parse( 'trule : float' )
+#--     expect(tree[0][:rule][:primitive_rule][:float_v]).to eq("float")
+## should parse a float value
+JCR: Pass
+    trule : float
+
+#-- Line: 209
+#--     tree = JCR.parse( 'trule : 2.0' )
+#--     expect(tree[0][:rule][:primitive_rule][:float]).to eq("2.0")
+## should parse a float constant
+JCR: Pass
+    trule : 2.0
+
+#-- Line: 214
+#--     tree = JCR.parse( 'trule : -2.0' )
+#--     expect(tree[0][:rule][:primitive_rule][:float]).to eq("-2.0")
+## should parse a negative float constant
+JCR: Pass
+    trule : -2.0
+
+#-- Line: 219
+#--     tree = JCR.parse( 'trule : 0.0..100.0' )
+#--     expect(tree[0][:rule][:primitive_rule][:float_min]).to eq("0.0")
+#--     expect(tree[0][:rule][:primitive_rule][:float_max]).to eq("100.0")
+## should parse a float range with a full range
+JCR: Pass
+    trule : 0.0..100.0
+
+#-- Line: 225
+#--     tree = JCR.parse( 'trule : -100.0..-1.0' )
+#--     expect(tree[0][:rule][:primitive_rule][:float_min]).to eq("-100.0")
+#--     expect(tree[0][:rule][:primitive_rule][:float_max]).to eq("-1.0")
+## should parse a negative float range with a full range
+JCR: Pass
+    trule : -100.0..-1.0
+
+#-- Line: 231
+#--     tree = JCR.parse( 'trule : 0.3939..' )
+#--     expect(tree[0][:rule][:primitive_rule][:float_min]).to eq("0.3939")
+## should parse a float range with a min range
+JCR: Pass
+    trule : 0.3939..
+
+#-- Line: 236
+#--     tree = JCR.parse( 'trule : ..100.003' )
+#--     expect(tree[0][:rule][:primitive_rule][:float_max]).to eq("100.003")
+## should parse a float range with a max range
+JCR: Pass
+    trule : ..100.003
+
+#-- Line: 241
+#--     begin
+#--       tree = JCR.parse( 'trule : ( :1.0 | :2 | :true | :"yes" | :"Y" )' )
+#--     rescue Parslet::ParseFailed => failure
+#--       puts failure.cause.ascii_tree
+## should parse an value with group 1
+JCR: Pass
+    trule : ( :1.0 | :2 | :true | :"yes" | :"Y" )
+
+#-- Line: 254
+#--     tree = JCR.parse( 'trule : ( :"no" | :false | :1.0 | :2 | :true | :"yes" | :"Y" )' )
+#--     expect(tree[0][:rule][:group_rule][0][:primitive_rule][:q_string]).to eq("no")
+#--     expect(tree[0][:rule][:group_rule][1][:primitive_rule][:false_v]).to eq("false")
+#--     expect(tree[0][:rule][:group_rule][2][:primitive_rule][:float]).to eq("1.0")
+#--     expect(tree[0][:rule][:group_rule][3][:primitive_rule][:integer]).to eq("2")
+#--     expect(tree[0][:rule][:group_rule][4][:primitive_rule][:true_v]).to eq("true")
+#--     expect(tree[0][:rule][:group_rule][5][:primitive_rule][:q_string]).to eq("yes")
+#--     expect(tree[0][:rule][:group_rule][6][:primitive_rule][:q_string]).to eq("Y")
+## should parse a value with group 2
+JCR: Pass
+    trule : ( :"no" | :false | :1.0 | :2 | :true | :"yes" | :"Y" )
+
+#-- Line: 265
+#--     tree = JCR.parse( 'trule : ( :null | :"no" | :false | :1.0 | :2 | :true | :"yes" | :"Y" )' )
+#--     expect(tree[0][:rule][:group_rule][0][:primitive_rule][:null]).to eq("null")
+#--     expect(tree[0][:rule][:group_rule][1][:primitive_rule][:q_string]).to eq("no")
+#--     expect(tree[0][:rule][:group_rule][2][:primitive_rule][:false_v]).to eq("false")
+#--     expect(tree[0][:rule][:group_rule][3][:primitive_rule][:float]).to eq("1.0")
+#--     expect(tree[0][:rule][:group_rule][4][:primitive_rule][:integer]).to eq("2")
+#--     expect(tree[0][:rule][:group_rule][5][:primitive_rule][:true_v]).to eq("true")
+#--     expect(tree[0][:rule][:group_rule][6][:primitive_rule][:q_string]).to eq("yes")
+#--     expect(tree[0][:rule][:group_rule][7][:primitive_rule][:q_string]).to eq("Y")
+## should parse a value with group 3
+JCR: Pass
+    trule : ( :null | :"no" | :false | :1.0 | :2 | :true | :"yes" | :"Y" )
+
+#-- Line: 277
+#--     tree = JCR.parse( 'vrule : integer mrule "thing" vrule' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("vrule")
+#--     expect(tree[1][:rule][:rule_name]).to eq("mrule")
+## should parse two rules
+JCR: Pass
+    vrule : integer mrule "thing" vrule
+
+#-- Line: 283
+#--     tree = JCR.parse( 'trule "thing" : ..100.003' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+## should parse a member rule with float range with a max range 3
+JCR: Pass
+    trule "thing" : ..100.003
+
+#-- Line: 289
+#--     tree = JCR.parse( 'trule "thing" : integer' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:integer_v]).to eq("integer")
+## should parse a member rule with integer value
+JCR: Pass
+    trule "thing" : integer
+
+#-- Line: 295
+#--     expect{ tree = JCR.parse( 'trule 1*2 "thing" : integer' ) }.to raise_error Parslet::ParseFailed
+## should not parse a repetition member string rule with integer value
+JCR: Fail
+    trule 1*2 "thing" : integer
+
+#-- Line: 299
+#--     tree = JCR.parse( 'trule /.*/ : integer' )
+#--     expect(tree[0][:rule][:member_rule][:member_regex][:regex]).to eq(".*")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:integer_v]).to eq("integer")
+## should parse an any member rule with integer value
+JCR: Pass
+    trule /.*/ : integer
+
+#-- Line: 305
+#--     tree = JCR.parse( 'trule // : integer' )
+#--     expect(tree[0][:rule][:member_rule][:member_regex][:regex]).to eq([])
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:integer_v]).to eq("integer")
+## should parse an any member rule of //
+JCR: Pass
+    trule // : integer
+
+#-- Line: 311
+#--     tree = JCR.parse( 'trule /a.regex\\.goes.here.*/ : string' )
+#--     expect(tree[0][:rule][:member_rule][:member_regex][:regex]).to eq("a.regex\\.goes.here.*")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:string]).to eq("string")
+## should parse an regex member rule with string value
+JCR: Pass
+    trule /a.regex\\.goes.here.*/ : string
+
+#-- Line: 317
+#--     tree = JCR.parse( 'trule "thing" : email' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:email]).to eq("email")
+## should parse a member rule with an email value 2
+JCR: Pass
+    trule "thing" : email
+
+#-- Line: 323
+#--     tree = JCR.parse( 'trule "thing" : ..100' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:primitive_rule][:integer_max]).to eq("100")
+## should parse a member rule with integer range with a max range 1
+JCR: Pass
+    trule "thing" : ..100
+
+#-- Line: 329
+#--     tree = JCR.parse( 'trule "thing" my_value_rule' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:target_rule_name][:rule_name]).to eq("my_value_rule")
+## should parse a member rule with a rule name
+JCR: Pass
+    trule "thing" my_value_rule
+
+#-- Line: 335
+#--     tree = JCR.parse( 'trule "thing" : ( an_array | an_object )' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:group_rule][0][:target_rule_name][:rule_name]).to eq("an_array")
+#--     expect(tree[0][:rule][:member_rule][:group_rule][1][:target_rule_name][:rule_name]).to eq("an_object")
+## should parse a member rule with a choice rule
+JCR: Pass
+    trule "thing" : ( an_array | an_object )
+
+#-- Line: 342
+#--     expect{ JCR.parse( 'trule "thing" : ( an_array , an_object )' ) }.to raise_error Parslet::ParseFailed
+## should fail a member rule with a and rule
+JCR: Fail
+    trule "thing" : ( an_array , an_object )
+
+#-- Line: 346
+#--     expect{ JCR.parse( 'trule "thing" : ( an_array | a_string , an_object )' ) }.to raise_error Parslet::ParseFailed
+## should fail a member rule with choice and and rule
+JCR: Fail
+    trule "thing" : ( an_array | a_string , an_object )
+
+#-- Line: 350
+#--     expect{ JCR.parse( 'trule "thing" : ( an_array , a_string , an_object )' ) }.to raise_error Parslet::ParseFailed
+## should parse a member rule with group of three ands
+JCR: Fail
+    trule "thing" : ( an_array , a_string , an_object )
+
+#-- Line: 354
+#--     tree = JCR.parse( 'trule "thing" : ( an_array | a_string | an_object )' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:group_rule][0][:target_rule_name][:rule_name]).to eq("an_array")
+#--     expect(tree[0][:rule][:member_rule][:group_rule][1][:target_rule_name][:rule_name]).to eq("a_string")
+#--     expect(tree[0][:rule][:member_rule][:group_rule][2][:target_rule_name][:rule_name]).to eq("an_object")
+## should parse a member rule with group of three ors
+JCR: Pass
+    trule "thing" : ( an_array | a_string | an_object )
+
+#-- Line: 362
+#--     tree = JCR.parse( 'trule "thing" { an_array, an_object }' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("an_array")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("an_object")
+## should parse a member rule with an object rule
+JCR: Pass
+    trule "thing" { an_array, an_object }
+
+#-- Line: 369
+#--     tree = JCR.parse( 'trule "thing" [ an_array, an_object ]' )
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("an_array")
+#--     expect(tree[0][:rule][:member_rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("an_object")
+## should parse a member rule with an array rule
+JCR: Pass
+    trule "thing" [ an_array, an_object ]
+
+#-- Line: 376
+#--     tree = JCR.parse( 'trule { }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an empty object rule
+JCR: Pass
+    trule { }
+
+#-- Line: 381
+#--     tree = JCR.parse( 'trule { my_rule1, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with rule names
+JCR: Pass
+    trule { my_rule1, my_rule2 }
+
+#-- Line: 388
+#--     tree = JCR.parse( 'trule : { my_rule1, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with preceding colon
+JCR: Pass
+    trule : { my_rule1, my_rule2 }
+
+#-- Line: 395
+#--     tree = JCR.parse( 'trule { my_rule1 | my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with rule names or`ed
+JCR: Pass
+    trule { my_rule1 | my_rule2 }
+
+#-- Line: 402
+#--     tree = JCR.parse( 'trule { "thing" my_value_rule, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:target_rule_name][:rule_name]).to eq("my_value_rule")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with names 1
+JCR: Pass
+    trule { "thing" my_value_rule, my_rule2 }
+
+#-- Line: 410
+#--     tree = JCR.parse( 'trule { "thing" my_value_rule| my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:target_rule_name][:rule_name]).to eq("my_value_rule")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with names or`ed`
+JCR: Pass
+    trule { "thing" my_value_rule| my_rule2 }
+
+#-- Line: 418
+#--     tree = JCR.parse( 'trule { "thing" : ..100.003, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with value rule 1
+JCR: Pass
+    trule { "thing" : ..100.003, my_rule2 }
+
+#-- Line: 426
+#--     tree = JCR.parse( 'trule { my_rule1, "thing" : ..100.003, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][1][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:object_rule][2][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with rule name, embeded member rules with value, rule name
+JCR: Pass
+    trule { my_rule1, "thing" : ..100.003, my_rule2 }
+
+#-- Line: 435
+#--     tree = JCR.parse( 'trule "mem_rule" { my_rule1, "thing" : ..100.003, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("mem_rule")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][1][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][1][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][2][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse a member rule as an object rule with rule name, embeded member rules with value, rule name
+JCR: Pass
+    trule "mem_rule" { my_rule1, "thing" : ..100.003, my_rule2 }
+
+#-- Line: 445
+#--     tree = JCR.parse( 'trule "mem_rule" : { my_rule1, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:member_rule][:member_name][:q_string]).to eq("mem_rule")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:member_rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with preceding colon
+JCR: Pass
+    trule "mem_rule" : { my_rule1, my_rule2 }
+
+#-- Line: 453
+#--     tree = JCR.parse( 'trule { "thing" : ..100.003| my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with value rule ored
+JCR: Pass
+    trule { "thing" : ..100.003| my_rule2 }
+
+#-- Line: 461
+#--     tree = JCR.parse( 'trule { "thing" : ..100.003, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with value rule spelled out 1
+JCR: Pass
+    trule { "thing" : ..100.003, my_rule2 }
+
+#-- Line: 469
+#--     tree = JCR.parse( 'trule { my_rule1, *1 my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
+## should parse an object rule with rule names with optionality 1
+JCR: Pass
+    trule { my_rule1, *1 my_rule2 }
+
+#-- Line: 478
+#--     tree = JCR.parse( 'trule { my_rule1, ? my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:optional]).to eq('?')
+## should parse an object rule with rule names with optional repetition
+JCR: Pass
+    trule { my_rule1, ? my_rule2 }
+
+#-- Line: 486
+#--     tree = JCR.parse( 'trule { my_rule1, * my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_interval]).to eq('*')
+## should parse an object rule with rule names with zero or many repetition
+JCR: Pass
+    trule { my_rule1, * my_rule2 }
+
+#-- Line: 494
+#--     tree = JCR.parse( 'trule { my_rule1, + my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:one_or_more]).to eq('+')
+## should parse an object rule with rule names with zero or many repetition
+JCR: Pass
+    trule { my_rule1, + my_rule2 }
+
+#-- Line: 502
+#--     tree = JCR.parse( 'trule { my_rule1, 2 my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:specific_repetition]).to eq('2')
+## should parse an object rule with rule names with 2 repetition
+JCR: Pass
+    trule { my_rule1, 2 my_rule2 }
+
+#-- Line: 510
+#--     tree = JCR.parse( 'trule { *1my_rule1, *1 my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_max]).to eq("1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
+## should parse an object rule with rule names with optionality 2
+JCR: Pass
+    trule { *1my_rule1, *1 my_rule2 }
+
+#-- Line: 521
+#--     tree = JCR.parse( 'trule { *1my_rule1| *1 my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_max]).to eq("1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
+## should parse an object rule with rule names with optionality with or
+JCR: Pass
+    trule { *1my_rule1| *1 my_rule2 }
+
+#-- Line: 532
+#--     tree = JCR.parse( 'trule { 0*1 "thing" : ..100.003, my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:member_name][:q_string]).to eq("thing")
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq("0")
+#--     expect(tree[0][:rule][:object_rule][0][:repetition_max]).to eq("1")
+#--     expect(tree[0][:rule][:object_rule][0][:member_rule][:primitive_rule][:float_max]).to eq("100.003")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with embeded member rules with value rule with optionality 1
+JCR: Pass
+    trule { 0*1 "thing" : ..100.003, my_rule2 }
+
+#-- Line: 542
+#--     tree = JCR.parse( 'trule { my_rule1, 1*2 my_rule2 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an object rule with rule names with optionality for any rules
+JCR: Pass
+    trule { my_rule1, 1*2 my_rule2 }
+
+#-- Line: 549
+#--     tree = JCR.parse( 'trule [ ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an empty array rule
+JCR: Pass
+    trule [ ]
+
+#-- Line: 554
+#--     tree = JCR.parse( 'trule [ my_rule1, my_rule2 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an array rule with rule names 1
+JCR: Pass
+    trule [ my_rule1, my_rule2 ]
+
+#-- Line: 561
+#--     tree = JCR.parse( 'trule : [ my_rule1, my_rule2 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an array rule with preceding colon
+JCR: Pass
+    trule : [ my_rule1, my_rule2 ]
+
+#-- Line: 568
+#--     tree = JCR.parse( 'trule [ my_rule1| my_rule2 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an array rule with rule names ored
+JCR: Pass
+    trule [ my_rule1| my_rule2 ]
+
+#-- Line: 575
+#--     tree = JCR.parse( 'trule [ 1*2 my_rule1, 1* my_rule2, *3 my_rule3 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq("1")
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_max]).to eq("2")
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:array_rule][1][:repetition_min]).to eq("1")
+#--     expect(tree[0][:rule][:array_rule][1][:repetition_max]).to eq(nil)
+#--     expect(tree[0][:rule][:array_rule][2][:target_rule_name][:rule_name]).to eq("my_rule3")
+#--     expect(tree[0][:rule][:array_rule][2][:repetition_max]).to eq("3")
+## should parse an array rule with rule names and repetition
+JCR: Pass
+    trule [ 1*2 my_rule1, 1* my_rule2, *3 my_rule3 ]
+
+#-- Line: 588
+#--     expect{ JCR.parse( 'trule [ 1*2 my_rule1, 1* my_rule2| *3 my_rule3 ]' ) }.to raise_error Parslet::ParseFailed
+## should not parse an array rule with rule names ored for one and repetition
+JCR: Fail
+    trule [ 1*2 my_rule1, 1* my_rule2| *3 my_rule3 ]
+
+#-- Line: 592
+#--     tree = JCR.parse( 'trule [ 1*2 my_rule1| 1* my_rule2| *3 my_rule3 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq("1")
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_max]).to eq("2")
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:array_rule][1][:repetition_min]).to eq("1")
+#--     expect(tree[0][:rule][:array_rule][1][:repetition_max]).to eq(nil)
+#--     expect(tree[0][:rule][:array_rule][2][:target_rule_name][:rule_name]).to eq("my_rule3")
+#--     expect(tree[0][:rule][:array_rule][2][:repetition_max]).to eq("3")
+## should parse an array rule with rule names ored and repetition
+JCR: Pass
+    trule [ 1*2 my_rule1| 1* my_rule2| *3 my_rule3 ]
+
+#-- Line: 605
+#--     tree = JCR.parse( 'trule [ * my_rule1, + my_rule2, ? my_rule3, 4 my_rule4 ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq(nil)
+#--     expect(tree[0][:rule][:array_rule][0][:repetition_max]).to eq(nil)
+#--     expect(tree[0][:rule][:array_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
+#--     expect(tree[0][:rule][:array_rule][1][:one_or_more]).to eq("+")
+#--     expect(tree[0][:rule][:array_rule][2][:target_rule_name][:rule_name]).to eq("my_rule3")
+#--     expect(tree[0][:rule][:array_rule][2][:optional]).to eq("?")
+#--     expect(tree[0][:rule][:array_rule][3][:target_rule_name][:rule_name]).to eq("my_rule4")
+#--     expect(tree[0][:rule][:array_rule][3][:specific_repetition]).to eq("4")
+## should parse an array rule with rule names and short repetition
+JCR: Pass
+    trule [ * my_rule1, + my_rule2, ? my_rule3, 4 my_rule4 ]
+
+#-- Line: 619
+#--     expect{ JCR.parse( 'trule [ *my_rule1, +my_rule2| ?my_rule3,4my_rule4 ]' ) }.to raise_error Parslet::ParseFailed
+## should not parse an array rule with rule names ored for one and short repetition
+JCR: Fail
+    trule [ *my_rule1, +my_rule2| ?my_rule3,4my_rule4 ]
+
+#-- Line: 623
+#--     tree = JCR.parse( 'trule [ my_rule1, { my_rule2 } ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
+#--     expect(tree[0][:rule][:array_rule][1][:object_rule][:target_rule_name][:rule_name]).to eq("my_rule2")
+## should parse an array rule with an object rule
+JCR: Pass
+    trule [ my_rule1, { my_rule2 } ]
+
+#-- Line: 630
+#--     tree = JCR.parse( 'trule [ : integer , { my_rule2 } ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with an object rule and value rule
+JCR: Pass
+    trule [ : integer , { my_rule2 } ]
+
+#-- Line: 635
+#--     tree = JCR.parse( 'trule [ my_rule1 , [ my_rule2 ] ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with a rulename and an array rule
+JCR: Pass
+    trule [ my_rule1 , [ my_rule2 ] ]
+
+#-- Line: 640
+#--     tree = JCR.parse( 'trule [ my_rule1 , [ : integer, { my_rule2 } ] ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with a rulename and an array rule with an object rule and value rule
+JCR: Pass
+    trule [ my_rule1 , [ : integer, { my_rule2 } ] ]
+
+#-- Line: 645
+#--     tree = JCR.parse( 'trule [ my_rule1 | [ : integer | { my_rule2 } ] ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with a rulename and an array rule with an object rule and value rule all ored
+JCR: Pass
+    trule [ my_rule1 | [ : integer | { my_rule2 } ] ]
+
+#-- Line: 650
+#--     tree = JCR.parse( 'trule [ my_rule1 | ( : integer | { my_rule2 } ) ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with a rulename and a group rule
+JCR: Pass
+    trule [ my_rule1 | ( : integer | { my_rule2 } ) ]
+
+#-- Line: 655
+#--     tree = JCR.parse( 'trule [ my_rule1 | 1*2( : integer | { my_rule2 } ) ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with a rulename and a group rule with count
+JCR: Pass
+    trule [ my_rule1 | 1*2( : integer | { my_rule2 } ) ]
+
+#-- Line: 660
+#--     tree = JCR.parse( 'trule ( my_rule1 )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a rulename only
+JCR: Pass
+    trule ( my_rule1 )
+
+#-- Line: 665
+#--     tree = JCR.parse( 'trule ( 0*15 my_rule1 )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a only a rulename with repetition
+JCR: Pass
+    trule ( 0*15 my_rule1 )
+
+#-- Line: 670
+#--     tree = JCR.parse( 'trule ( "thing" target_rule )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule only
+JCR: Pass
+    trule ( "thing" target_rule )
+
+#-- Line: 675
+#--     tree = JCR.parse( 'trule ( "thing" : integer )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule that has a value rule
+JCR: Pass
+    trule ( "thing" : integer )
+
+#-- Line: 680
+#--     tree = JCR.parse( 'trule ( /.*/ : integer )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule specified with a regex that has a value rule
+JCR: Pass
+    trule ( /.*/ : integer )
+
+#-- Line: 685
+#--     tree = JCR.parse( 'trule ( 0 * 15 /.*/ : integer )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule specified with a regex and repetition that has a value rule
+JCR: Pass
+    trule ( 0 * 15 /.*/ : integer )
+
+#-- Line: 690
+#--     tree = JCR.parse( 'trule ( * 15 /.*/ : integer )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule specified with a regex and only repetition max that has a value rule
+JCR: Pass
+    trule ( * 15 /.*/ : integer )
+
+#-- Line: 695
+#--     tree = JCR.parse( 'trule ( 1 * /.*/ : integer )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a member rule specified with a regex and only repetition min that has a value rule
+JCR: Pass
+    trule ( 1 * /.*/ : integer )
+
+#-- Line: 700
+#--     tree = JCR.parse( 'trule ( [ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with an array rule with an object rule and value rule
+JCR: Pass
+    trule ( [ : integer, { my_rule2 } ] )
+
+#-- Line: 705
+#--     tree = JCR.parse( 'trule ( my_rule1 , [ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a rulename and an array rule with an object rule and value rule
+JCR: Pass
+    trule ( my_rule1 , [ : integer, { my_rule2 } ] )
+
+#-- Line: 710
+#--     tree = JCR.parse( 'trule ( *1my_rule1 , [ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with an optional rulename and an array rule with an object rule and value rule
+JCR: Pass
+    trule ( *1my_rule1 , [ : integer, { my_rule2 } ] )
+
+#-- Line: 715
+#--     tree = JCR.parse( 'trule ( 0*1my_rule1 , 0*1 [ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with an optional rulename and an optional array rule with an object rule and value rule
+JCR: Pass
+    trule ( 0*1my_rule1 , 0*1 [ : integer, { my_rule2 } ] )
+
+#-- Line: 720
+#--     tree = JCR.parse( 'trule ( 1*2 my_rule1 , [ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a repitition rulename and an array rule with an object rule and value rule
+JCR: Pass
+    trule ( 1*2 my_rule1 , [ : integer, { my_rule2 } ] )
+
+#-- Line: 725
+#--     tree = JCR.parse( 'trule ( 1*2 my_rule1 , *4[ : integer, { my_rule2 } ] )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a repitition rulename and a repetition array rule with an object rule and value rule
+JCR: Pass
+    trule ( 1*2 my_rule1 , *4[ : integer, { my_rule2 } ] )
+
+#-- Line: 730
+#--     tree = JCR.parse( 'trule ( my_rule1 , [ : integer, { my_rule2 } ], ( my_rule3, my_rule4 ) )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a rulename and an array rule with an object rule and value rule and another group
+JCR: Pass
+    trule ( my_rule1 , [ : integer, { my_rule2 } ], ( my_rule3, my_rule4 ) )
+
+#-- Line: 735
+#--     tree = JCR.parse( 'trule { ( my_rule1, my_rule2 ), my_rule3 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an object rule with a group rule and a rulename
+JCR: Pass
+    trule { ( my_rule1, my_rule2 ), my_rule3 }
+
+#-- Line: 740
+#--     tree = JCR.parse( 'trule { 0*1( my_rule1, my_rule2 ), my_rule3 }' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an object rule with an optional group rule and a rulename
+JCR: Pass
+    trule { 0*1( my_rule1, my_rule2 ), my_rule3 }
+
+#-- Line: 745
+#--     tree = JCR.parse( 'trule [ 1*2 my_rule1, ( my_rule2, my_rule3 ) ]' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with rule names and repitition and a group rule
+JCR: Pass
+    trule [ 1*2 my_rule1, ( my_rule2, my_rule3 ) ]
+
+#-- Line: 750
+#--     tree = JCR.parse( 'trule : /.*/ ;\;;' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a value rule with a comment
+JCR: Pass
+    trule : /.*/ ;\;;
+
+#-- Line: 755
+#--     tree = JCR.parse( 'trule /.*/ target_rule ;\;;' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a member regex rule with a comment
+JCR: Pass
+    trule /.*/ target_rule ;\;;
+
+#-- Line: 760
+#--     tree = JCR.parse( 'trule1 : /.*/ ;; trule2 /.*/ target_rule' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule1")
+#--     expect(tree[1][:rule][:rule_name]).to eq("trule2")
+## should parse two rules separated by a comment
+JCR: Pass
+    trule1 : /.*/ ;; trule2 /.*/ target_rule
+
+#-- Line: 766
+#--     tree = JCR.parse( ': /.*/' )
+## should parse a bottom value rule
+JCR: Pass
+    : /.*/
+
+#-- Line: 770
+#--     tree = JCR.parse( '[ * :any ]' )
+## should parse a bottom array rule
+JCR: Pass
+    [ * :any ]
+
+#-- Line: 774
+#--     expect{ JCR.parse( '[ * :any ] [ 2 :integer ]' ) }.to raise_error Parslet::ParseFailed
+## should not parse two bottom array rules
+JCR: Fail
+    [ * :any ] [ 2 :integer ]
+
+#-- Line: 778
+#--     tree = JCR.parse( '{ "foo" :any }' )
+## should parse a bottom object rule
+JCR: Pass
+    { "foo" :any }
+
+#-- Line: 782
+#--     tree = JCR.parse( '[ * target_rule ] ;; trule : /.*/' )
+## should parse a bottom value rule and another rules separated by a comment
+JCR: Pass
+    [ * target_rule ] ;; trule : /.*/
+
+#-- Line: 786
+#--     ex = <<EX
+#--     tree = JCR.parse( ex )
+#--     expect(tree[1][:rule][:rule_name]).to eq("trule2")
+## should parse multiple comments before any directives
+JCR: Fail
+    ;comment 1
+    ;comment 2
+    ;comment 3
+    ;comment 4
+    #jcr-version 4.0
+    trule2 /.*/ target_rule
+
+#-- Line: 799
+#--     ex = <<EX
+#--     tree = JCR.parse( ex )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule1")
+#--     expect(tree[1][:rule][:rule_name]).to eq("trule2")
+## should parse two rules separated by multiple comment
+JCR: Fail
+    trule1 : /.*/
+    ;comment 1
+    ;comment 2
+    ;comment 3
+    ;comment 4
+    trule2 /.*/ target_rule
+
+#-- Line: 813
+#--     ex = <<EX
+#--     tree = JCR.parse( ex )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule1")
+#--     expect(tree[1][:rule][:rule_name]).to eq("trule2")
+## should parse rules containing multiple comment
+JCR: Fail
+    trule1
+    	;comment 1
+    	;comment 2
+    : /.*/
+    trule2 /.*/ target_rule
+
+#-- Line: 826
+#--     ex = <<EX
+#--     tree = JCR.parse( ex )
+## should parse rules, directives, comments and bottom rules
+JCR: Fail
+    [ trule1 ]
+    trule1 : /.*/
+    ;comment 1
+    ;comment 2
+    ;comment 3
+    ;comment 4
+    ;comment 5
+    #jcr-version 4.0
+
+#-- Line: 840
+#--     ex1 = <<EX1
+#--     tree = JCR.parse( ex1 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with rule names and repitition and a group rule with newlines
+JCR: Fail
+    trule [
+      1*2 my_rule1,
+      ( my_rule2, my_rule3 )
+    ]
+
+#-- Line: 851
+#--     ex2 = <<EX2
+#--     tree = JCR.parse( ex2 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse an array rule with rule names and repitition and a group rule with a trailing comment
+JCR: Fail
+    trule [ ;comment 1
+      1*2 my_rule1, ;comment 2
+      ( my_rule2, my_rule3 ) ;comment 3
+    ] ;comment 4
+
+#-- Line: 862
+#--     ex2a = <<EX2A
+#--     tree = JCR.parse( ex2a )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse group rules and value groups
+JCR: Fail
+    trule [ ;comment 1
+      1*2 my_rule1, ;comment 2
+      : ( string | integer ),
+      ( my_rule2 | my_rule3 ) ;comment 3
+    ] ;comment 4
+
+#-- Line: 874
+#--     ex2a = <<EX2A
+#--     tree = JCR.parse( ex2a )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse group rules and value groups with embedded comments
+JCR: Fail
+    trule [ ;comment 1
+      1*2 ;one or two; my_rule1, ;comment 2
+      : ;can be string or integer; ( string | integer ),
+      ( my_rule2 | ;my third rule; my_rule3 ) ;comment 3
+    ] ;comment 4
+
+#-- Line: 886
+#--     ex2b = <<EX2B
+#--     tree = JCR.parse( ex2b )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse group rules and value union that are ored
+JCR: Fail
+    trule [ ;comment 1
+      1*2 my_rule1| ;comment 2
+      : ( string | integer ) |
+      ( my_rule2 , my_rule3 ) ;comment 3
+    ] ;comment 4
+
+#-- Line: 898
+#--     ex3 = <<EX3
+#--     tree = JCR.parse( ex3 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[1][:rule][:rule_name]).to eq("trule2")
+## should parse multiple commented rules
+JCR: Fail
+    trule [ ;comment 1
+      1*2 my_rule1, ;comment 2
+      ( my_rule2, my_rule3 ) ;comment 3
+    ] ;comment 4
+    trule2( my_rule1 , [ : integer, { my_rule2 } ], ( my_rule3, my_rule4 ) )
+
+#-- Line: 911
+#--     ex4 = <<EX4
+#--     tree = JCR.parse( ex4 )
+#--     expect(tree[2][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[3][:rule][:rule_name]).to eq("trule2")
+## should parse multiple commented rules with directives
+JCR: Fail
+    # ruleset-id http://arin.net/JCRexamples
+    # import http://arin.net/otherexamples
+    trule [ ;comment 1
+      1*2 my_rule1, ;comment 2
+      ( my_rule2, my_rule3 ) ;comment 3
+    ] ;comment 4
+    trule2( my_rule1 , [ : integer, { my_rule2 } ], ( my_rule3, my_rule4 ) )
+
+#-- Line: 926
+#--     ex5 = <<EX5
+#--     tree = JCR.parse( ex5 )
+#--     expect(tree[3][:rule][:rule_name]).to eq("trule")
+#--     expect(tree[4][:rule][:rule_name]).to eq("trule2")
+## should parse multiple commented rules with multiple directives
+JCR: Fail
+    # jcr-version 4.0
+    # ruleset-id net.arin.eng
+    # import http://arin.net/otherexamples as otherrules
+    trule [ ;comment 1
+      1*2 my_rule1, ;comment 2
+      ( my_rule2, my_rule3 ) ;comment 3
+    ] ;comment 4
+    trule2( my_rule1 , [ : integer, { my_rule2 } ], ( my_rule3, my_rule4 ) )
+
+#-- Line: 942
+#--     ex5a = <<EX5a
+#--     tree = JCR.parse( ex5a )
+#--     expect(tree[0][:directive][:jcr_version_d][:major_version]).to eq("4")
+#--     expect(tree[0][:directive][:jcr_version_d][:minor_version]).to eq("0")
+## should parse jcr-version directive major and minor numbers
+JCR: Fail
+    # jcr-version 4.0
+    # ruleset-id my_awesome_rules
+    # import http://arin.net/otherexamples as otherrules
+
+#-- Line: 953
+#--     ex6 = <<EX6
+#--     tree = JCR.parse( ex6 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("root")
+## should parse ex1 from I-D
+JCR: Fail
+    root [
+        2*2{
+            "precision" : string,
+            "Latitude" : float,
+            "Longitude" : float,
+            "Address" : string,
+            "City" : string,
+            "State" : string,
+            "Zip" : string,
+            "Country" : string
+        }
+    ]
+
+#-- Line: 972
+#--     ex7 = <<EX7
+#--     tree = JCR.parse( ex7 )
+#--     expect(tree[2][:rule][:rule_name]).to eq("root")
+## should parse ex2 from I-D
+JCR: Fail
+    width "width" : 0..1280
+    height "height" : 0..1024
+    
+    root {
+        "Image" {
+            width, height, "Title" :string,
+            "thumbnail" { width, height, "Url" :uri },
+            "IDs" [ *:integer ]
+        }
+    }
+
+#-- Line: 989
+#--     ex8 = <<EX8
+#--     tree = JCR.parse( ex8 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("nameserver")
+## should parse ex3 from I-D
+JCR: Fail
+    nameserver {
+    
+         ; the host name of the name server
+         "name" : fqdn,
+    
+         ; the ip addresses of the nameserver
+         "ipAddresses" [ *( :ip4 | :ip6 ) ],
+    
+         ; common rules for all structures
+         common
+       }
+
+#-- Line: 1007
+#--     ex9 = <<EX9
+#--     tree = JCR.parse( ex9 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("any_member")
+## should parse ex4 from I-D
+JCR: Fail
+    any_member /.*/ : any
+    
+    object_of_anything { *any_member }
+
+#-- Line: 1017
+#--     ex10 = <<EX10
+#--     tree = JCR.parse( ex10 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("object_of_anything")
+## should parse ex5 from I-D
+JCR: Fail
+    object_of_anything { */.*/:any }
+
+#-- Line: 1025
+#--     ex11 = <<EX11
+#--     tree = JCR.parse( ex11 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("any_value")
+## should parse ex6 from I-D
+JCR: Fail
+    any_value : any
+    
+    array_of_any [ *any_value ]
+
+#-- Line: 1035
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("array_of_any")
+## should parse ex7 from I-D
+JCR: Fail
+    array_of_any [ *:any ]
+
+#-- Line: 1043
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("encodings")
+## should parse groups of values with groups
+JCR: Fail
+    encodings : ( :"base32" | :"base64" )
+    more_encodings : ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings ( encodings | more_encodings )
+
+#-- Line: 1053
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("encodings")
+## should parse groups of values with groups and values with groups with rules
+JCR: Fail
+    encodings : ( :"base32" | :"base64" )
+    more_encodings : ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings : ( encodings | more_encodings )
+
+#-- Line: 1063
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("encodings")
+## should parse groups of values
+JCR: Fail
+    encodings ( :"base32" | :"base64" )
+    more_encodings ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings ( encodings | more_encodings )
+
+#-- Line: 1073
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("encodings")
+## should parse groups of values and rulenames
+JCR: Fail
+    encodings ( :"base32" | :"base64" )
+    more_encodings ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings ( :"rot13" | encodings | more_encodings )
+
+#-- Line: 1083
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[3][:rule][:rule_name]).to eq("all_encodings")
+#--     expect(tree[3][:rule][:group_rule][0][:target_rule_name][:ruleset_id_alias]).to eq("rfcXXXX")
+#--     expect(tree[3][:rule][:group_rule][0][:target_rule_name][:rule_name]).to eq("encodings")
+## should parse groups of values with namespaced rule names
+JCR: Fail
+    # import http://ietf.org/rfcXXXX.JCR as rfcXXXX
+    encodings : ( :"base32" | :"base64" )
+    more_encodings : ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings ( rfcXXXX.encodings | more_encodings )
+
+#-- Line: 1096
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[3][:rule][:rule_name]).to eq("all_encodings")
+#--     # expect(tree[3][:rule][:group_rule][0][:target_rule_name][:namespace_alias]).to eq(nil)
+#--     expect(tree[3][:rule][:group_rule][0][:target_rule_name][:rule_name]).to eq("more_encodings")
+## should parse groups of values with non-namespaced rule names
+JCR: Fail
+    # import http://ietf.org/rfcXXXX.JCR as rfcXXXX
+    encodings : ( :"base32" | :"base64" )
+    more_encodings : ( :"base32hex" | :"base64url" | :"base16" )
+    all_encodings ( more_encodings | rfcXXXX.encodings )
+
+#-- Line: 1109
+#--     ex12 = <<EX12
+#--     tree = JCR.parse( ex12 )
+#--     expect(tree[0][:rule][:rule_name]).to eq("encodings")
+## should parse groups as groups
+JCR: Fail
+    encodings : ( :"base32" | :"base64" | :integer | :/^.{5,10}/ | :ip4 | :ip6 | :fqdn )
+
+#-- Line: 1117
+#--     expect{ JCR.parse( 'mrule "thing" ( :integer , :float ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with member with group of two ANDED values
+JCR: Fail
+    mrule "thing" ( :integer , :float ) 
+
+#-- Line: 1121
+#--     expect{ JCR.parse( 'mrule "thing" ( :integer | :string , :float ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with member with group of ORed and ANDED values
+JCR: Fail
+    mrule "thing" ( :integer | :string , :float ) 
+
+#-- Line: 1125
+#--     expect{ JCR.parse( 'mrule "thing" ( :integer | :float ) ;; mrule2 "thing2" ( :ip4 , :ip6 )' ) }.to raise_error Parslet::ParseFailed
+## should error with 1 member with group of OR values and member with group of AND values
+JCR: Fail
+    mrule "thing" ( :integer | :float ) ;; mrule2 "thing2" ( :ip4 , :ip6 )
+
+#-- Line: 1129
+#--     expect{ JCR.parse( 'mrule "thing" ( :integer | ( :ip4 , :ip6 ) ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with member with group of value OR group
+JCR: Fail
+    mrule "thing" ( :integer | ( :ip4 , :ip6 ) ) 
+
+#-- Line: 1133
+#--     expect{ JCR.parse( 'arule { ( "m2" :integer | :integer ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with group of value OR value
+JCR: Fail
+    arule { ( "m2" :integer | :integer ) }
+
+#-- Line: 1137
+#--     expect{ JCR.parse( 'arule { ( "m2" :integer | [ :integer ] ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with group of value OR array
+JCR: Fail
+    arule { ( "m2" :integer | [ :integer ] ) }
+
+#-- Line: 1141
+#--     expect{ JCR.parse( 'arule { ( "m2" :integer | { "m1" :integer } ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with group of value OR object
+JCR: Fail
+    arule { ( "m2" :integer | { "m1" :integer } ) }
+
+#-- Line: 1145
+#--     expect{ JCR.parse( 'rule { ( "m1" :integer | :float ), ( "m3" :string, "m4" :string ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with two groups of members and values 2
+JCR: Fail
+    rule { ( "m1" :integer | :float ), ( "m3" :string, "m4" :string ) }
+
+#-- Line: 1149
+#--     expect{ JCR.parse( 'rule { ( "m1" :integer | "m2" :float ), ( "m3" :string, :string ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with two groups of members and values 1
+JCR: Fail
+    rule { ( "m1" :integer | "m2" :float ), ( "m3" :string, :string ) }
+
+#-- Line: 1153
+#--     expect{ JCR.parse( 'rule { ( "thing" :integer | :integer ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with group with member and value
+JCR: Fail
+    rule { ( "thing" :integer | :integer ) }
+
+#-- Line: 1157
+#--     expect{ JCR.parse( 'rule { ( "thing" :integer | :integer ) }' ) }.to raise_error Parslet::ParseFailed
+## should error with object with group with member and value
+JCR: Fail
+    rule { ( "thing" :integer | :integer ) }
+
+#-- Line: 1161
+#--     expect{ JCR.parse( 'trule : any ;; rule [ ( :integer | ( :ip4 | "thing" trule ) ) ]' ) }.to raise_error Parslet::ParseFailed
+## should error with array with group of value OR with group with member
+JCR: Fail
+    trule : any ;; rule [ ( :integer | ( :ip4 | "thing" trule ) ) ]
+
+#-- Line: 1165
+#--     expect{ JCR.parse( 'trule : any ;; rule [ ( :integer | :float ) ] ;; rule2 [ ( :ip4 , "thing" trule ) ]' ) }.to raise_error Parslet::ParseFailed
+## should error with array with group of OR values and array with group of values and member
+JCR: Fail
+    trule : any ;; rule [ ( :integer | :float ) ] ;; rule2 [ ( :ip4 , "thing" trule ) ]
+
+#-- Line: 1169
+#--     expect{ JCR.parse( 'trule : any ;; rule [ :string, ( :integer, "thing" trule ) ]' ) }.to raise_error Parslet::ParseFailed
+## should error with array with value and group of one value and one member
+JCR: Fail
+    trule : any ;; rule [ :string, ( :integer, "thing" trule ) ]
+
+#-- Line: 1173
+#--     expect{ JCR.parse( 'trule : any ;; rule [ ( :integer, "thing" trule ) ]' ) }.to raise_error Parslet::ParseFailed
+## should error with array with group of one value and one member
+JCR: Fail
+    trule : any ;; rule [ ( :integer, "thing" trule ) ]
+
+#-- Line: 1177
+#--     expect{ JCR.parse( 'trule : any ;; rule [ ( "thing" trule ) ]' ) }.to raise_error Parslet::ParseFailed
+## should error with array with group of one member
+JCR: Fail
+    trule : any ;; rule [ ( "thing" trule ) ]
+
+#-- Line: 1181
+#--     expect{ JCR.parse( 'trule :any ;; rule : ( :integer | ( :ip4 | "thing" trule ) ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with value with group of value OR group with member
+JCR: Fail
+    trule :any ;; rule : ( :integer | ( :ip4 | "thing" trule ) ) 
+
+#-- Line: 1185
+#--     expect{ JCR.parse( 'rule : ( :integer | ( :ip4 , :ip6 ) ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with value with group of value OR group
+JCR: Fail
+    rule : ( :integer | ( :ip4 , :ip6 ) ) 
+
+#-- Line: 1189
+#--     expect{ JCR.parse( 'rule : ( :integer | :float ) ;; rule2 : ( :ip4 , :ip6 )' ) }.to raise_error Parslet::ParseFailed
+## should error with 1 value with group of OR values and value with group of AND values
+JCR: Fail
+    rule : ( :integer | :float ) ;; rule2 : ( :ip4 , :ip6 )
+
+#-- Line: 1193
+#--     expect{ JCR.parse( 'rule : ( :integer | :string , :float ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with value with group of ORed and ANDED values
+JCR: Fail
+    rule : ( :integer | :string , :float ) 
+
+#-- Line: 1197
+#--     expect{ JCR.parse( 'rule : ( :integer , :float ) ' ) }.to raise_error Parslet::ParseFailed
+## should error with value with group of two ANDED values
+JCR: Fail
+    rule : ( :integer , :float ) 
+
+#-- Line: 1201
+#--     expect{ JCR.parse( 'my_int : ..' ) }.to raise_error Parslet::ParseFailed
+## should error with integer or float with no range
+JCR: Fail
+    my_int : ..
+
+#-- Line: 1205
+#--     tree = JCR.parse( 'my_int @(reject) : 2' )
+## should parse value rule with reject directive
+JCR: Pass
+    my_int @(reject) : 2
+
+#-- Line: 1209
+#--     tree = JCR.parse( 'my_mem @(reject) "count" :integer' )
+## should parse member rule with reject directive
+JCR: Pass
+    my_mem @(reject) "count" :integer
+
+#-- Line: 1213
+#--     tree = JCR.parse( 'my_rule @(reject) { "count" :integer }' )
+## should parse object rule with reject directive
+JCR: Pass
+    my_rule @(reject) { "count" :integer }
+
+#-- Line: 1217
+#--     tree = JCR.parse( 'my_rule @(root) @(reject) { "count" :integer }' )
+## should parse object rule with reject directive
+JCR: Pass
+    my_rule @(root) @(reject) { "count" :integer }
+
+#-- Line: 1221
+#--     tree = JCR.parse( 'my_rule @(reject) [ *:integer ]' )
+## should parse array rule with reject directive
+JCR: Pass
+    my_rule @(reject) [ *:integer ]
+
+#-- Line: 1225
+#--     tree = JCR.parse( 'my_rule @(unordered) [ *:integer ]' )
+## should parse array rule with unordered directive
+JCR: Pass
+    my_rule @(unordered) [ *:integer ]
+
+#-- Line: 1229
+#--     tree = JCR.parse( 'my_rule @(root) [ *:integer ]' )
+## should parse array rule with root directive
+JCR: Pass
+    my_rule @(root) [ *:integer ]
+
+#-- Line: 1233
+#--     tree = JCR.parse( 'my_rule @(unordered) @(reject) [ *:integer ]' )
+## should parse array rule with unordered directive
+JCR: Pass
+    my_rule @(unordered) @(reject) [ *:integer ]
+
+#-- Line: 1237
+#--     tree = JCR.parse( 'my_rule @(reject) @(unordered) [ *:integer ]' )
+## should parse array rule with unordered directive
+JCR: Pass
+    my_rule @(reject) @(unordered) [ *:integer ]
+
+#-- Line: 1241
+#--     tree = JCR.parse( 'my_rule @( reject ) ( *:integer )' )
+## should parse group rule with reject directive
+JCR: Pass
+    my_rule @( reject ) ( *:integer )
+
+#-- Line: 1245
+#--     tree = JCR.parse( 'my_rule [ * @(reject) :integer ]' )
+## should parse array rule with reject directive on value rule
+JCR: Pass
+    my_rule [ * @(reject) :integer ]
+
+#-- Line: 1249
+#--     expect{ JCR.parse( 'my_rule [ @(reject) target_rule ]' ) }.to raise_error Parslet::ParseFailed
+## should parse array rule with reject directive on target rule
+JCR: Fail
+    my_rule [ @(reject) target_rule ]
+
+#-- Line: 1253
+#--     tree = JCR.parse( 'trule @(reject) ( my_rule1 )' )
+#--     expect(tree[0][:rule][:rule_name]).to eq("trule")
+## should parse a group rule with a rulename only with reject
+JCR: Pass
+    trule @(reject) ( my_rule1 )
+
