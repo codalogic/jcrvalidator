@@ -26,12 +26,21 @@ by a comment decribing what the JCR and JSON instances are intended to test.
 
 The test description consists of a line that starts with `##` and ends at the
 end of the line.  The
-JCR for a test is identified by a line that starts with the string `JCR:` and is
+JCR for a test is identified by a line that starts with the string `JCR:` or
+the string `JCRFull` and is
 followed by either `Pass` or `Fail` depending on whether the JCR is valid or not.
-(White space may be included between the `JCR:` and `Pass` / `Fail` tokens.)
+(White space may be included between the `JCR:` / `JCRFull:` and `Pass` / `Fail` tokens.)
 The actual JCR for a test begins on the following line and continues until another
-test description comment, a `JSON:` declaration or end of file is encountered.  The
-optional JSON for a test is identified by a line that starts with `JSON:` and
+test description comment, a `JSON:` declaration or end of file is encountered.
+
+JCR identified by the `JCR:` string should only be tested to determine if the JCR
+is syntactically correct.  JCR identified by `JCRFull:` should not only be syntactically correct
+but should also be verified that all the named rules link properly and are fully consistent with
+the contexts in which they are used.  (Any JCR that is used to validate subsequent
+JSON will be subject to 'full' testing.  Hence, only JCR that does not have any
+associated JSON benfits from the `JCRFull` marker.)
+
+The optional JSON for a test is identified by a line that starts with `JSON:` and
 is again followed by either `Pass` or `Fail` depending on whether the JSON is valid
 according to the previously defined JCR.  The actual JSON starts on the following
 line, and, as before, is terminated by another test description comment, a `JCR:`
@@ -54,6 +63,14 @@ For example:
         [ 1,2,3 ]
     JSON: Fail
         [ "One", "Two" ]
+    
+    ## should error with value with group with member
+    JCRFull: Fail
+        trule : any ;; grule ( :ip4 | "thing" trule ) ;; arule "thing" :( :integer | grule ) 
+    
+    ## should be ok with value with group of value OR rulename
+    JCRFull: Pass
+        grule ( :ip4 | :ip6 ) ;; vrule "thing" :( :integer | grule ) 
 
 ## The Tools
 

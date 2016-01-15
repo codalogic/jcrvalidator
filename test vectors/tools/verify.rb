@@ -100,7 +100,8 @@ class Verify
         @test_filename = test_filename
         @description_tracker = DescriptionTracker.new
         @jcr = ''
-        @expected_jcr_result = false
+        @expected_jcr_parse_result = false
+        @expected_jcr_full_result = nil     # nil if absent, otherwise true or false
         @json = nil
         @expected_json_result = false
         @test_record = test_record
@@ -139,18 +140,24 @@ class Verify
     def seeking( line )
         if is_description_marker( line )
             @description_tracker.new_description( get_description( line ) )
-        elsif is_jcr_marker( line )
-            @jcr = ''
-            @json = nil
-            @expected_jcr_result = is_pass_expected( line )
+        elsif is_jcr_parse_marker( line ) || is_jcr_full_marker( line )
             @description_tracker.associate_with_jcr
             @line_num = line_num
+            @jcr = ''
+            @json = nil
+            if is_jcr_parse_marker( line )
+                @expected_jcr_parse_result = is_pass_expected( line )
+                @expected_jcr_full_result = nil
+            else
+                @expected_jcr_parse_result = true
+                @expected_jcr_full_result = is_pass_expected( line )
+            end
             @state = READ_STATE::READING_JCR
         elsif is_json_marker( line )
-            @json = ''
-            @expected_json_result = is_pass_expected( line )
             @description_tracker.associate_with_json
             @line_num = line_num
+            @json = ''
+            @expected_json_result = is_pass_expected( line )
             @state = READ_STATE::READING_JSON
         end
     end
@@ -190,8 +197,12 @@ class Verify
         return ''
     end
 
-    def is_jcr_marker( line )
+    def is_jcr_parse_marker( line )
         return /^JCR:/.match( line )
+    end
+
+    def is_jcr_full_marker( line )
+        return /^JCRFull:/.match( line )
     end
 
     def is_json_marker( line )
@@ -200,7 +211,8 @@ class Verify
 
     def is_marker( line )
         return is_description_marker( line ) ||
-                is_jcr_marker( line ) ||
+                is_jcr_parse_marker( line ) ||
+                is_jcr_full_marker( line ) ||
                 is_json_marker( line )
     end
 
@@ -214,7 +226,8 @@ class Verify
         TestRunner.new( @test_record ).run(
                 filename: @test_filename, line: @line_num,
                 description: @description_tracker.test_description,
-                jcr: @jcr, expected_jcr_result: @expected_jcr_result,
+                jcr: @jcr, expected_jcr_parse_result: @expected_jcr_parse_result,
+                    expected_jcr_full_result: @expected_jcr_full_result,
                 json: @json, expected_json_result: @expected_json_result )
     end
 
@@ -244,7 +257,12 @@ class LineReader
     end
 
     def initialize( filename )
-        @fin = File.open( filename, 'r' )
+        begin
+            @fin = File.open( filename, 'r' )
+        rescue
+            @fin = nil
+            puts "Unable to open file: #{filename}"
+        end
         @last_line = ''
         @use_last_line = false
         @line_num = 0
@@ -322,31 +340,51 @@ class TestRunner
         @test_record = test_record
     end
 
-    def run( filename:, line:, description:,
-            jcr:, expected_jcr_result:,
+    def run(
+            filename:, line:, description:,
+            jcr:, expected_jcr_parse_result:, expected_jcr_full_result:,
             json:, expected_json_result: )
         @filename, @line, @description = filename, line, description
-        @jcr, @expected_jcr_result = jcr, expected_jcr_result
-        @json, @expected_json_result = json, expected_json_result
+        @jcr = jcr
+        @expected_jcr_parse_result = expected_jcr_parse_result
+        @expected_jcr_full_result = expected_jcr_full_result
+        @json = json
+        @expected_json_result = expected_json_result
 
         if ! @json
-            run_jcr_test
+            run_jcr_parse_test
+            run_jcr_full_test if @expected_jcr_full_result != nil
         else
             run_json_test
         end
     end
 
-    def run_jcr_test
+    def run_jcr_parse_test
         is_jcr_ok = true
         begin
             JCR.parse( @jcr )   # Only test syntax of standalone JCR, not all dependencies
         rescue
             is_jcr_ok = false
         end
-        if ! @test_record.record( is_jcr_ok == @expected_jcr_result )
+        if ! @test_record.record( is_jcr_ok == @expected_jcr_parse_result )
             puts "Test failed : #{@description != '' ? @description : ''}"
             puts "    When checking JCR '#{@jcr.strip}'"
-            puts "    Expected #{@expected_jcr_result ? 'Pass' : 'Fail'}"
+            puts "    Expected #{@expected_jcr_parse_result ? 'Pass' : 'Fail'}"
+            puts "    File: #{@filename}, line #{@line}"
+        end
+    end
+
+    def run_jcr_full_test
+        is_jcr_ok = true
+        begin
+            jcr_ctx = JCR::Context.new( @jcr )
+        rescue
+            is_jcr_ok = false
+        end
+        if ! @test_record.record( is_jcr_ok == @expected_jcr_full_result )
+            puts "Test failed : #{@description != '' ? @description : ''}"
+            puts "    When checking full JCR '#{@jcr.strip}'"
+            puts "    Expected #{@expected_jcr_full_result ? 'Pass' : 'Fail'}"
             puts "    File: #{@filename}, line #{@line}"
         end
     end
@@ -358,7 +396,7 @@ class TestRunner
             puts "JCR parsing failed #{@line} on '#{@jcr.strip}'"
             return
         end
-        if ! /^\s*[\[\{]/.match( @json )
+        if ! is_json_top_level_array_or_object
             puts "Warning: Line #{@line}: Ruby JSON parser only accepts array or object at top-level, not '#{@json.strip}'"
             return
         end
@@ -383,6 +421,10 @@ class TestRunner
             puts "    File: #{@filename}, line #{@line}"
             # puts "    Reason: #{result.reason}" if result
         end
+    end
+
+    def is_json_top_level_array_or_object
+        return @json =~ /^\s*[\[\{]/
     end
 
     def assumed_root
