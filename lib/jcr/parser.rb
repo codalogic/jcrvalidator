@@ -106,8 +106,10 @@ module JCR
         #! name              = ALPHA *( ALPHA / DIGIT / "-" / "_" )
         #!
 
-    rule(:rule_def)          { member_rule | type_rule | group_rule }
-        #! rule_def = member_rule / type_rule / group_rule
+    rule(:rule_def)          { member_rule | type_rule_def | group_rule | target_rule_name }
+        #! rule_def = member_rule / type_rule_def / group_rule / target_rule_name
+    rule(:type_rule_def)          { annotations.as(:annotations) >> str(':') >> spcCmnt? >> type_rule  }
+        #! type_rule_def = annotations ":" spcCmt? type_rule
     rule(:type_rule)         { value_rule | type_choice_rule | target_rule_name }
         #! type_rule = value_rule / type_choice_rule / target_rule_name
     rule(:value_rule)         { primitive_rule | array_rule | object_rule }
@@ -288,8 +290,8 @@ module JCR
         #!                           *( choice_combiner group_item ) )
     rule(:group_item)   { group_item_types >> spcCmnt? >> repetition.maybe }
         #! group_item = spcCmnt? group_item_types spcCmnt? [ repetition ]
-    rule(:group_item_types) { member_rule | type_rule | group_group }
-        #! group_item_types = member_rule / type_rule / group_group
+    rule(:group_item_types) { member_rule | type_rule_def | target_rule_name | group_group }
+        #! group_item_types = member_rule / type_rule_def / target_rule_name / group_group
     rule(:group_group)  { group_rule }
         #! group_group = group_rule
         #!
