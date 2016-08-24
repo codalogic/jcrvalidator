@@ -637,6 +637,34 @@ describe 'parser' do
     expect(tree[0][:rule][:rule_name]).to eq("trule")
   end
 
+  it 'should parse an array rule with two integers content' do
+    tree = JCR.parse( '$trule = [ integer @2 ]' )
+    expect(tree[0][:rule][:rule_name]).to eq("trule")
+    expect(tree[0][:rule][:array_rule][:primitive_rule][:integer_v]).to eq("integer")
+    expect(tree[0][:rule][:array_rule][:specific_repetition]).to eq("2")
+  end
+
+  it 'should parse an array rule with two integers content - no spacing right' do
+    tree = JCR.parse( '$trule = [ integer @2]' )
+    expect(tree[0][:rule][:rule_name]).to eq("trule")
+    expect(tree[0][:rule][:array_rule][:primitive_rule][:integer_v]).to eq("integer")
+    expect(tree[0][:rule][:array_rule][:specific_repetition]).to eq("2")
+  end
+
+  it 'should parse an array rule with two integers content - no spacing left' do
+    tree = JCR.parse( '$trule = [ integer@2 ]' )
+    expect(tree[0][:rule][:rule_name]).to eq("trule")
+    expect(tree[0][:rule][:array_rule][:primitive_rule][:integer_v]).to eq("integer")
+    expect(tree[0][:rule][:array_rule][:specific_repetition]).to eq("2")
+  end
+
+  it 'should parse an array rule with two integers content - no spacing left or right' do
+    tree = JCR.parse( '$trule = [ integer@2]' )
+    expect(tree[0][:rule][:rule_name]).to eq("trule")
+    expect(tree[0][:rule][:array_rule][:primitive_rule][:integer_v]).to eq("integer")
+    expect(tree[0][:rule][:array_rule][:specific_repetition]).to eq("2")
+  end
+
   it 'should parse an array rule with rule names 1' do
     tree = JCR.parse( '$trule = :[ $my_rule1, $my_rule2 ]' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
