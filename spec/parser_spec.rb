@@ -623,21 +623,21 @@ describe 'parser' do
   end
 
   it 'should parse an object rule with rule names with optionality 1' do
-    tree = JCR.parse( '$trule = type { $my_rule1, $my_rule2 *..1 }' )
+    tree = JCR.parse( '$trule = type { $my_rule1, $my_rule2 *0..1 }' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
-    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
     expect(tree[0][:rule][:object_rule][1][:repetition_step]).to eq(nil)
   end
 
   it 'should parse an object rule with rule names with optionality 4 step 2' do
-    tree = JCR.parse( '$trule = type { $my_rule1, $my_rule2 *..4%2 }' )
+    tree = JCR.parse( '$trule = type { $my_rule1, $my_rule2 *0..4%2 }' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
-    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("4")
     expect(tree[0][:rule][:object_rule][1][:repetition_step]).to eq("2")
   end
@@ -695,24 +695,24 @@ describe 'parser' do
   end
 
   it 'should parse an object rule with rule names with optionality 2' do
-    tree = JCR.parse( '$trule = :{ $my_rule1 *..1, $my_rule2 *..1 }' )
+    tree = JCR.parse( '$trule = :{ $my_rule1 *0..1, $my_rule2 *0..1 }' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
-    expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][0][:repetition_max]).to eq("1")
     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
-    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
   end
 
   it 'should parse an object rule with rule names with optionality with or' do
-    tree = JCR.parse( '$trule = :{ $my_rule1*..1| $my_rule2 *..1}' )
+    tree = JCR.parse( '$trule = :{ $my_rule1*0..1| $my_rule2 *0..1}' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:object_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
-    expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][0][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][0][:repetition_max]).to eq("1")
     expect(tree[0][:rule][:object_rule][1][:target_rule_name][:rule_name]).to eq("my_rule2")
-    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:object_rule][1][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:object_rule][1][:repetition_max]).to eq("1")
   end
 
@@ -765,7 +765,7 @@ describe 'parser' do
   end
 
   it 'should parse an array rule with rule names and repetition' do
-    tree = JCR.parse( '$trule = :[ $my_rule1 *1..2, $my_rule2 *1.., $my_rule3 *..3 ]' )
+    tree = JCR.parse( '$trule = :[ $my_rule1 *1..2, $my_rule2 *1.., $my_rule3 *0..3 ]' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq("1")
@@ -776,13 +776,13 @@ describe 'parser' do
     expect(tree[0][:rule][:array_rule][1][:repetition_max]).to eq(nil)
     expect(tree[0][:rule][:array_rule][1][:repetition_step]).to eq(nil)
     expect(tree[0][:rule][:array_rule][2][:target_rule_name][:rule_name]).to eq("my_rule3")
-    expect(tree[0][:rule][:array_rule][2][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:array_rule][2][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:array_rule][2][:repetition_max]).to eq("3")
     expect(tree[0][:rule][:array_rule][2][:repetition_step]).to eq(nil)
   end
 
   it 'should parse an array rule with rule names and repetition and step' do
-    tree = JCR.parse( '$trule = :[ $my_rule1 *0..4%2, $my_rule2 *1..%3, $my_rule3 *..9%3 ]' )
+    tree = JCR.parse( '$trule = :[ $my_rule1 *0..4%2, $my_rule2 *1..%3, $my_rule3 *0..9%3 ]' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq("0")
@@ -793,17 +793,17 @@ describe 'parser' do
     expect(tree[0][:rule][:array_rule][1][:repetition_max]).to eq(nil)
     expect(tree[0][:rule][:array_rule][1][:repetition_step]).to eq("3")
     expect(tree[0][:rule][:array_rule][2][:target_rule_name][:rule_name]).to eq("my_rule3")
-    expect(tree[0][:rule][:array_rule][2][:repetition_min]).to eq(nil)
+    expect(tree[0][:rule][:array_rule][2][:repetition_min]).to eq("0")
     expect(tree[0][:rule][:array_rule][2][:repetition_max]).to eq("9")
     expect(tree[0][:rule][:array_rule][2][:repetition_step]).to eq("3")
   end
 
   it 'should not parse an array rule with rule names ored for one and repetition' do
-    expect{ JCR.parse( '$trule = :[ $my_rule1 *1..2, $my_rule2 *1..| $my_rule3 *..3 ]' ) }.to raise_error Parslet::ParseFailed
+    expect{ JCR.parse( '$trule = :[ $my_rule1 *1..2, $my_rule2 *1..| $my_rule3 *0..3 ]' ) }.to raise_error Parslet::ParseFailed
   end
 
   it 'should parse an array rule with rule names ored and repetition' do
-    tree = JCR.parse( '$trule = :[ $my_rule1 *1..2| $my_rule2 *1..| $my_rule3 *..3]' )
+    tree = JCR.parse( '$trule = :[ $my_rule1 *1..2| $my_rule2 *1..| $my_rule3 *0..3]' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:array_rule][0][:target_rule_name][:rule_name]).to eq("my_rule1")
     expect(tree[0][:rule][:array_rule][0][:repetition_min]).to eq("1")
@@ -949,7 +949,7 @@ describe 'parser' do
   end
 
   it 'should parse a group rule with an optional rulename and an array rule with an object rule and value rule' do
-    tree = JCR.parse( '$trule = ( $my_rule1*..1 , [ integer, { $my_rule2 } ] )' )
+    tree = JCR.parse( '$trule = ( $my_rule1*0..1 , [ integer, { $my_rule2 } ] )' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
   end
 
@@ -964,7 +964,7 @@ describe 'parser' do
   end
 
   it 'should parse a group rule with a repitition rulename and a repetition array rule with an object rule and value rule' do
-    tree = JCR.parse( '$trule = ( $my_rule1 *1..2 , [ integer, { $my_rule2 } ]*..4 )' )
+    tree = JCR.parse( '$trule = ( $my_rule1 *1..2 , [ integer, { $my_rule2 } ]*0..4 )' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
   end
 
@@ -1520,7 +1520,7 @@ EX11
 
   it 'should parse ex7 from I-D' do
     ex12 = <<EX12
-$array_of_any = :[ any*.. ]
+$array_of_any = :[ any*0.. ]
 EX12
     tree = JCR.parse( ex12 )
     expect(tree[0][:rule][:rule_name]).to eq("array_of_any")
@@ -1757,19 +1757,19 @@ EX12
     JCR.parse( '[ 1 ]' )
   end
 
-  it 'should parse an array with a literal number with repetition of 1' do
+  it 'should parse an array with a literal number with repetition of *1' do
     JCR.parse( '[ 1 *1 ]' )
   end
 
-  it 'should parse an array with a literal number with repetition of *1' do
-    JCR.parse( '[ 1 *..1 ]' )
+  it 'should parse an array with a literal number with repetition of *0..1' do
+    JCR.parse( '[ 1 *0..1 ]' )
   end
 
-  it 'should parse an array with a literal number with repetition of 1*1' do
+  it 'should parse an array with a literal number with repetition of *1..1' do
     JCR.parse( '[ 1 *1..1 ]' )
   end
 
-  it 'should parse an array with a literal number with repetition of 1*' do
+  it 'should parse an array with a literal number with repetition of *1..' do
     JCR.parse( '[ 1 *1..]' )
   end
 
@@ -1781,15 +1781,15 @@ EX12
     JCR.parse( '( 1 *1 )' )
   end
 
-  it 'should parse a group with a literal number with repetition of *1' do
-    JCR.parse( '( 1 *..1 )' )
+  it 'should parse a group with a literal number with repetition of *0..1' do
+    JCR.parse( '( 1 *0..1 )' )
   end
 
-  it 'should parse a group with a literal number with repetition of 1*1' do
+  it 'should parse a group with a literal number with repetition of *1..1' do
     JCR.parse( '( 1 *1..1 )' )
   end
 
-  it 'should parse a group with a literal number with repetition of 1*' do
+  it 'should parse a group with a literal number with repetition of *1..' do
     JCR.parse( '( 1 *1..)' )
   end
 

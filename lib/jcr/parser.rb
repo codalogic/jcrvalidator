@@ -370,16 +370,15 @@ module JCR
                                  (min_max_repetition | specific_repetition) }
         #! repetition_range = "*" spcCmnt? (
         #!                             min_max_repetition / min_repetition /
-        #!                             max_repetition / specific_repetition )
+        #!                             specific_repetition )
     rule(:min_max_repetition)  {      # This includes min_only and max_only cases
-            non_neg_integer.maybe.as(:repetition_min) >>
+            non_neg_integer.as(:repetition_min) >>
             str("..").as(:repetition_interval) >>
             non_neg_integer.maybe.as(:repetition_max) >>
             repetition_step.maybe }
         #! min_max_repetition = min_repeat ".." max_repeat
         #!                     [ repetition_step ]
         #! min_repetition = min_repeat ".." [ repetition_step ]
-        #! max_repetition = ".."  max_repeat [ repetition_step ]
         #! min_repeat = non_neg_integer
         #! max_repeat = non_neg_integer
     rule(:specific_repetition) { non_neg_integer.as(:specific_repetition) }

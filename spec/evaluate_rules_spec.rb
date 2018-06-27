@@ -161,12 +161,12 @@ describe 'evaluate_rules' do
   end
 
   it 'should print repetitions in an array' do
-    tree = JCR.parse( '[ integer?, string*, float *1, boolean *1..2, null *..2, double *1.., string ? ]' )
+    tree = JCR.parse( '[ integer?, string*, float *1, boolean *1..2, null *0..2, double *1.., string ? ]' )
     expect( JCR.rule_to_s( tree[0] ) ).to eq( '[ integer ? , string * , float *1 , boolean *1..2 , null *0..2 , double *1..INF , string ? ]' )
   end
 
   it 'should print repetitions with steps in an array' do
-    tree = JCR.parse( '[ string*%3, boolean *1..2%3, null *..2%3, double *1..%3 ]' )
+    tree = JCR.parse( '[ string*%3, boolean *1..2%3, null *0..2%3, double *1..%3 ]' )
     expect( JCR.rule_to_s( tree[0] ) ).to eq( '[ string *%3 , boolean *1..2%3 , null *0..2%3 , double *1..INF%3 ]' )
   end
 
