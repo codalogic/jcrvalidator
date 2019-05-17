@@ -158,11 +158,15 @@ module JCR
         #!                  spcCmnt? )
     rule(:annotation_set)    { not_annotation | unordered_annotation | root_annotation |
                                exclude_min_annotation | exclude_max_annotation |
-                               default_annotation | tbd_annotation }
+                               default_annotation | format_annotation |
+                               choice_annotation | augments_annotation |
+                               tbd_annotation }
         #! annotation_set = not_annotation / unordered_annotation /
         #!                  root_annotation /
         #!                  exclude_min_annotation / exclude_max_annotation /
-        #!                  default_annotation / tbd_annotation
+        #!                  default_annotation / format_annotation /
+        #!                  choice_annotation / augments_annotation /
+        #!                  tbd_annotation
     rule(:not_annotation) { str('not').as(:not_annotation) }
         #! not_annotation = not-kw
         #> not-kw = "not"
@@ -184,6 +188,15 @@ module JCR
     rule(:primitive_value) { false_value | null_type | true_value | float_value | integer_value | string_value }
         #! primitive_value = false_value / null_type / true_value /
         #!                   float_value / integer_value / string_value
+    rule(:format_annotation) { str('format').as(:format_annotation) >> spaces >> id }
+        #! format_annotation = format-kw spaces id
+        #> format-kw = "format"
+    rule(:choice_annotation) { str('choice').as(:choice_annotation) }
+        #! choice_annotation = choice-kw
+        #> choice-kw = "choice"
+    rule(:augments_annotation) { str('augments').as(:augments_annotation) >> (spaces >> target_rule_name).repeat }
+        #! augments_annotation = augments-kw *(spaces target_rule_name)
+        #> augments-kw = "augments"
     rule(:tbd_annotation)    { name.as(:annotation_name) >> ( spaces >> annotation_parameters.as(:annotation_parameters) ).maybe }
         #! tbd_annotation = annotation_name [ spaces annotation_parameters ]
         #! annotation_name = name

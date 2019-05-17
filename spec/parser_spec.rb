@@ -1764,6 +1764,18 @@ EX12
     tree = JCR.parse( '$my_mem = "count" : @{default "open"} string' )
   end
 
+  it 'should parse member rule with {format org.json-content-rules.types} annotation directive' do
+    tree = JCR.parse( '$my_mem = "key" : @{format org.json-content-rules.types} string' )
+  end
+
+  it 'should parse member rule with {choice} annotation directive' do
+    tree = JCR.parse( '$my_mem = @{choice} {}' )
+  end
+
+  it 'should parse member rule with {augments} annotation directive' do
+    tree = JCR.parse( '$my_mem = @{augments $foo $bar} ("test" : string ?)' )
+  end
+
   it 'should parse an unknown annotation' do
     tree = JCR.parse( '$my_int =: @{assert $ % 3 == 0} 2' )
     expect(tree[0][:rule][:rule_name]).to eq("my_int")

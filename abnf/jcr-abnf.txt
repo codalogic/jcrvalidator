@@ -75,7 +75,9 @@ annotations      = *( "@{" *sp-cmt annotation-set *sp-cmt "}"
 annotation-set   = not-annotation / unordered-annotation /
                    root-annotation /
                    exclude-min-annotation / exclude-max-annotation /
-                   default-annotation / tbd-annotation
+                   default-annotation / format-annotation /
+                   choice-annotation / augments-annotation /
+                   tbd-annotation
 not-annotation   = not-kw
 unordered-annotation = unordered-kw
 root-annotation  = root-kw
@@ -84,6 +86,9 @@ exclude-max-annotation = exclude-max-kw
 default-annotation = default-kw spaces primitive-value
 primitive-value  = false-value / null-type / true-value /
                    float-value / integer-value / string-value
+format-annotation = format-kw spaces id
+choice-annotation = choice-kw
+augments-annotation = augments-kw *(spaces target-rule-name)
 tbd-annotation   = annotation-name [ spaces annotation-parameters ]
 annotation-name  = name
 annotation-parameters = multi-line-parameters
@@ -227,11 +232,13 @@ uri-scheme       = 1*ALPHA
 ;; Keywords
 any-kw           = %x61.6E.79                      ; "any"
 as-kw            = %x61.73                         ; "as"
+augments-kw      = %x61.75.67.6D.65.6E.74.73       ; "augments"
 base32-kw        = %x62.61.73.65.33.32             ; "base32"
 base32hex-kw     = %x62.61.73.65.33.32.68.65.78    ; "base32hex"
 base64-kw        = %x62.61.73.65.36.34             ; "base64"
 base64url-kw     = %x62.61.73.65.36.34.75.72.6C    ; "base64url"
 boolean-kw       = %x62.6F.6F.6C.65.61.6E          ; "boolean"
+choice-kw        = %x63.68.6F.69.63.65             ; "choice"
 date-kw          = %x64.61.74.65                   ; "date"
 datetime-kw      = %x64.61.74.65.74.69.6D.65       ; "datetime"
 default-kw       = %x64.65.66.61.75.6C.74          ; "default"
@@ -241,6 +248,7 @@ exclude-max-kw   = %x65.78.63.6C.75.64.65.2D.6D.61.78 ; "exclude-max"
 exclude-min-kw   = %x65.78.63.6C.75.64.65.2D.6D.69.6E ; "exclude-min"
 false-kw         = %x66.61.6C.73.65                ; "false"
 float-kw         = %x66.6C.6F.61.74                ; "float"
+format-kw        = %x66.6F.72.6D.61.74             ; "format"
 fqdn-kw          = %x66.71.64.6E                   ; "fqdn"
 hex-kw           = %x68.65.78                      ; "hex"
 idn-kw           = %x69.64.6E                      ; "idn"
