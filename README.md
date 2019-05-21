@@ -1,3 +1,7 @@
+# Status
+
+This fork is currently not being merged back into arineng/jcrvalidator (https://github.com/arineng/jcrvalidator).
+
 # JSON Content Rules Validator
 
 [![Gem Version](https://badge.fury.io/rb/jcrvalidator.svg)](https://badge.fury.io/rb/jcrvalidator)
