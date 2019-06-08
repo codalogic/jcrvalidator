@@ -18,7 +18,7 @@ multi-line-directive = "{" *sp-cmt
                    ( directive-def /
                    multi-line-tbd-directive-d )
                    *sp-cmt "}"
-directive-def    = jcr-version-d / ruleset-id-d / import-d
+directive-def    = jcr-version-d / ruleset-id-d / import-d / infer-types-d
 jcr-version-d    = jcr-version-kw DSPs major-version
                    "." minor-version
                    *( DSPs "+" [ DSPs ] extension-id )
@@ -32,6 +32,7 @@ import-d         = import-kw DSPs ruleset-id
                    [ DSPs as-kw DSPs ruleset-id-alias ]
 ruleset-id       = id
 ruleset-id-alias = name
+infer-types-d    = infer-types-kw
 one-line-tbd-directive-d = directive-name
                    [ WSP one-line-directive-parameters ]
 directive-name   = name
@@ -252,6 +253,7 @@ fqdn-kw          = %x66.71.64.6E                   ; "fqdn"
 hex-kw           = %x68.65.78                      ; "hex"
 idn-kw           = %x69.64.6E                      ; "idn"
 import-kw        = %x69.6D.70.6F.72.74             ; "import"
+infer-types-kw   = %x69.6E.66.65.72.2D.74.79.70.65.73 ; "infer-types"
 int-kw           = %x69.6E.74                      ; "int"
 integer-kw       = %x69.6E.74.65.67.65.72          ; "integer"
 ipaddr-kw        = %x69.70.61.64.64.72             ; "ipaddr"
