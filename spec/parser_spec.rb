@@ -72,6 +72,10 @@ describe 'parser' do
     tree = JCR.parse( '$trule = type ipv6 ' )
     expect(tree[0][:rule][:primitive_rule][:ipv6]).to eq("ipv6")
   end
+  it 'should parse an ipv6 value defintion 4' do
+    tree = JCR.parse( '$trule = ipv6 ' )
+    expect(tree[0][:rule][:primitive_rule][:ipv6]).to eq("ipv6")
+  end
 
   it 'should parse an ipaddr value' do
     tree = JCR.parse( '$trule = type ipaddr' )
@@ -95,6 +99,22 @@ describe 'parser' do
     tree = JCR.parse( '$trule = type "a string constant" ' )
     expect(tree[0][:rule][:rule_name]).to eq("trule")
     expect(tree[0][:rule][:primitive_rule][:q_string]).to eq("a string constant")
+  end
+
+  it 'should parse a string constant' do
+    tree = JCR.parse( '$trule = "a string constant"' )
+    expect(tree[0][:rule][:rule_name]).to eq("trule")
+    expect(tree[0][:rule][:primitive_rule][:q_string]).to eq("a string constant")
+  end
+
+  it 'should parse a string constant as a string type with #infer-types' do
+    ex = <<EX
+    #infer-types
+    $trule = "a string constant"
+EX
+    tree = JCR.parse( ex )
+    expect(tree[1][:rule][:rule_name]).to eq("trule")
+    expect(tree[1][:rule][:primitive_rule][:string]).to eq('"a string constant"')
   end
 
   it 'should parse a string' do
@@ -178,14 +198,44 @@ describe 'parser' do
     expect(tree[0][:rule][:primitive_rule][:any]).to eq("any")
   end
 
-  it 'should parse true' do
+  it 'should parse true with type designator' do
     tree = JCR.parse( '$trule = type true' )
     expect(tree[0][:rule][:primitive_rule][:true_v]).to eq("true")
   end
 
-  it 'should parse false' do
+  it 'should parse true' do
+    tree = JCR.parse( '$trule = true' )
+    expect(tree[0][:rule][:primitive_rule][:true_v]).to eq("true")
+  end
+
+  it 'should parse true as boolean with #infer-types' do
+    ex = <<EX
+    #infer-types
+    $trule = true
+EX
+    tree = JCR.parse( ex )
+    expect(tree[1][:rule][:rule_name]).to eq("trule")
+    expect(tree[1][:rule][:primitive_rule][:boolean_v]).to eq("true")
+  end
+
+  it 'should parse false with type designator' do
     tree = JCR.parse( '$trule = type false' )
     expect(tree[0][:rule][:primitive_rule][:false_v]).to eq("false")
+  end
+
+  it 'should parse false' do
+    tree = JCR.parse( '$trule = false' )
+    expect(tree[0][:rule][:primitive_rule][:false_v]).to eq("false")
+  end
+
+  it 'should parse false as boolean with #infer-types' do
+    ex = <<EX
+    #infer-types
+    $trule = false
+EX
+    tree = JCR.parse( ex )
+    expect(tree[1][:rule][:rule_name]).to eq("trule")
+    expect(tree[1][:rule][:primitive_rule][:boolean_v]).to eq("false")
   end
 
   it 'should parse boolean' do
@@ -198,8 +248,13 @@ describe 'parser' do
     expect(tree[0][:rule][:primitive_rule][:boolean_v]).to eq("boolean")
   end
 
-  it 'should parse null' do
+  it 'should parse null with type designator' do
     tree = JCR.parse( '$trule = type null' )
+    expect(tree[0][:rule][:primitive_rule][:null]).to eq("null")
+  end
+
+  it 'should parse null' do
+    tree = JCR.parse( '$trule = null' )
     expect(tree[0][:rule][:primitive_rule][:null]).to eq("null")
   end
 
@@ -231,6 +286,16 @@ describe 'parser' do
   it 'should parse a negative integer constant without : prefix' do
     tree = JCR.parse( '$trule = -2' )
     expect(tree[0][:rule][:primitive_rule][:integer]).to eq("-2")
+  end
+
+  it 'should parse -2 as integer with #infer-types' do
+    ex = <<EX
+    #infer-types
+    $trule = -2
+EX
+    tree = JCR.parse( ex )
+    expect(tree[1][:rule][:rule_name]).to eq("trule")
+    expect(tree[1][:rule][:primitive_rule][:integer_v]).to eq("-2")
   end
 
   it 'should parse an integer full range' do
@@ -323,6 +388,11 @@ describe 'parser' do
     expect(tree[0][:rule][:primitive_rule][:float_v]).to eq("float")
   end
 
+  it 'should parse a float value without : prefix' do
+    tree = JCR.parse( '$trule = float' )
+    expect(tree[0][:rule][:primitive_rule][:float_v]).to eq("float")
+  end
+
   it 'should parse a float constant' do
     tree = JCR.parse( '$trule = :2.0' )
     expect(tree[0][:rule][:primitive_rule][:float]).to eq("2.0")
@@ -341,6 +411,16 @@ describe 'parser' do
   it 'should parse a negative float constant without : prefix' do
     tree = JCR.parse( '$trule = -2.0' )
     expect(tree[0][:rule][:primitive_rule][:float]).to eq("-2.0")
+  end
+
+  it 'should parse -2.0 as float with #infer-types' do
+    ex = <<EX
+    #infer-types
+    $trule = -2.0
+EX
+    tree = JCR.parse( ex )
+    expect(tree[1][:rule][:rule_name]).to eq("trule")
+    expect(tree[1][:rule][:primitive_rule][:float_v]).to eq("-2.0")
   end
 
   it 'should parse a float range with a full range' do

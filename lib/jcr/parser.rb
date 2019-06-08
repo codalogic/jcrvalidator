@@ -251,7 +251,7 @@ module JCR
     rule(:string_type)    { str('string').as(:string) }
         #! string_type = string-kw
         #> string-kw = "string"
-    rule(:string_value)    { q_string }
+    rule(:string_value)    { @infer_types?q_string_no_capture.as(:string):q_string }
         #! string_value = q_string
     rule(:string_range)    { regex }
         #! string_range = regex
