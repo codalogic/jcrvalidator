@@ -18,6 +18,9 @@ require 'parslet'
 module JCR
 
   class Parser < Parslet::Parser
+    def initialize
+        @infer_types = false
+    end
 
     root(:jcr)
 
@@ -60,8 +63,8 @@ module JCR
         #!                        ( directive_def /
         #!                          multi_line_tbd_directive_d )
         #!                        spcCmnt? "}"
-    rule(:directive_def) { jcr_version_d | ruleset_id_d | import_d }
-        #! directive_def = jcr_version_d / ruleset_id_d / import_d
+    rule(:directive_def) { jcr_version_d | ruleset_id_d | import_d | infer_types_d }
+        #! directive_def = jcr_version_d / ruleset_id_d / import_d / infer_types_d
     rule(:jcr_version_d) { ( str('jcr-version') >> dsps >>
                              non_neg_integer.as(:major_version) >> str('.') >> non_neg_integer.as(:minor_version) >>
                              ( dsps >> str('+') >> dsps? >> extension_id ).repeat
@@ -90,6 +93,9 @@ module JCR
         #! ruleset_id = id
     rule(:ruleset_id_alias)  { name.as(:ruleset_id_alias) }
         #! ruleset_id_alias = name
+    rule(:infer_types_d)      { str('infer-types').as([:infer_types_d,@infer_types=true][0]) }
+        #! infer_types_d = infer-types-kw
+        #> infer-types-kw = "infer-types"
     rule(:one_line_tbd_directive_d) { name.as(:directive_name) >> ( wsp >> match('[^\r\n]').repeat.as(:directive_parameters) ).maybe }
         #! one_line_tbd_directive_d = directive_name
         #!                            [ WSP one_line_directive_parameters ]
@@ -236,10 +242,10 @@ module JCR
     rule(:boolean_type)   { str('boolean').as(:boolean_v) }
         #! boolean_type = boolean-kw
         #> boolean-kw = "boolean"
-    rule(:true_value)      { str('true').as(:true_v) }
+    rule(:true_value)      { str('true').as(@infer_types?(:boolean_v):(:true_v)) }
         #! true_value = true-kw
         #> true-kw = "true"
-    rule(:false_value)     { str('false').as(:false_v) }
+    rule(:false_value)     { str('false').as(@infer_types?(:boolean_v):(:false_v)) }
         #! false_value = false-kw
         #> false-kw = "false"
     rule(:string_type)    { str('string').as(:string) }
@@ -261,7 +267,7 @@ module JCR
         #! float_range = float_min ".." [ float_max ] / ".." float_max
         #! float_min = float
         #! float_max = float
-    rule(:float_value)     { float.as(:float) }
+    rule(:float_value)     { float.as(@infer_types?(:float_v):(:float)) }
         #! float_value = float
     rule(:integer_type)   { str('integer').as(:integer_v) }
         #! integer_type = integer-kw
@@ -273,7 +279,7 @@ module JCR
         #!                 ".." integer_max
         #! integer_min = integer
         #! integer_max = integer
-    rule(:integer_value)   { integer.as(:integer) }
+    rule(:integer_value)   { integer.as(@infer_types?(:integer_v):(:integer)) }
         #! integer_value = integer
     rule(:sized_int_type)   { ( str('int') >> pos_integer.as(:bits) ).as(:sized_int_v) }
         #! sized_int_type = int-kw pos_integer
@@ -461,6 +467,12 @@ module JCR
         #! quotation-mark = %x22      ; "
         #! unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
         #!
+
+    rule(:q_string_no_capture)  {
+      str('"') >>
+        ( match('\.') | match('[^"]') ).repeat >>
+      str('"')
+    }
 
     rule(:regex)     { str('/') >> (str('\\/') | match('[^/]+')).repeat.as(:regex) >> str('/') >> regex_modifiers.maybe }
         #! regex = "/" *( escape re_escape_code / not-slash ) "/"
