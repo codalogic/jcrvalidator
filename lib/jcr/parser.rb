@@ -93,7 +93,7 @@ module JCR
         #! ruleset_id = id
     rule(:ruleset_id_alias)  { name.as(:ruleset_id_alias) }
         #! ruleset_id_alias = name
-    rule(:infer_types_d)      { str('infer-types').as([:infer_types_d,@infer_types=true][0]) }
+    rule(:infer_types_d)      { str('infer-types').as( (@infer_types=true; :infer_types_d) ) }
         #! infer_types_d = infer-types-kw
         #> infer-types-kw = "infer-types"
     rule(:one_line_tbd_directive_d) { name.as(:directive_name) >> ( wsp >> match('[^\r\n]').repeat.as(:directive_parameters) ).maybe }
