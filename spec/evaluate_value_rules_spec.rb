@@ -91,6 +91,18 @@ describe 'evaluate_value_rules' do
     expect( e.success ).to be_falsey
   end
 
+  it 'should pass with #infer-types when a string does not match a string constant' do
+    ex = <<EX
+    #infer-types
+    $trule=: "a string constant"
+EX
+    tree = JCR.parse( ex )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], "another string constant", JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
   it 'should pass a string variable' do
     tree = JCR.parse( '$trule=: string' )
     mapping = JCR.map_rule_names( tree )
@@ -141,6 +153,18 @@ describe 'evaluate_value_rules' do
     JCR.check_rule_target_names( tree, mapping )
     e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
     expect( e.success ).to be_falsey
+  end
+
+  it 'should pass with #infer-types an integer variable not matching a constant' do
+    ex = <<EX
+    #infer-types
+    $trule=: 3
+EX
+    tree = JCR.parse( ex )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], 2, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
   end
 
   it 'should fail an integer variable when passed a string' do
@@ -467,6 +491,18 @@ describe 'evaluate_value_rules' do
     expect( e.success ).to be_falsey
   end
 
+  it 'should pass with #infer-types an float variable not matching a constant' do
+    ex = <<EX
+    #infer-types
+    $trule=: 3.1
+EX
+    tree = JCR.parse( ex )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], 2.1, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
   it 'should fail an float exact when passed a string' do
     tree = JCR.parse( '$trule=: 3.1' )
     mapping = JCR.map_rule_names( tree )
@@ -615,12 +651,36 @@ describe 'evaluate_value_rules' do
     expect( e.success ).to be_falsey
   end
 
+  it 'should pass with #infer-types a false value against a true type' do
+    ex = <<EX
+    #infer-types
+    $trule=: true
+EX
+    tree = JCR.parse( ex )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], false, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
   it 'should fail a true as a false' do
     tree = JCR.parse( '$trule=: false' )
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
     e = JCR.evaluate_rule( tree[0], tree[0], true, JCR::EvalConditions.new( mapping, nil ) )
     expect( e.success ).to be_falsey
+  end
+
+  it 'should pass with #infer-types a true value against a false type' do
+    ex = <<EX
+    #infer-types
+    $trule=: false
+EX
+    tree = JCR.parse( ex )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], true, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
   end
 
   #
