@@ -57,14 +57,9 @@ module JCR
       Evaluation.new( false, "#{data} is not an object for #{raised_rule(jcr,rule_atom)}"),
                       econs, target_annotations ) unless data.is_a? Hash
 
-    # if the object has no members and there are zero sub-rules (it is suppose to be empty)
+    # if the object has no zero sub-rules it will accept anything due to being open for extension
     return evaluate_not( annotations,
-      Evaluation.new( true, nil ), econs, target_annotations ) if rules.empty? && data.length == 0
-
-    # if the object has members and there are zero sub-rules (it is suppose to be empty)
-    return evaluate_not( annotations,
-      Evaluation.new( false, "Non-empty object for #{raised_rule(jcr,rule_atom)}" ),
-                         econs, target_annotations ) if rules.empty? && data.length != 0
+      Evaluation.new( true, nil ), econs, target_annotations ) if rules.empty?
 
     retval = nil
     behavior = ObjectBehavior.new unless behavior

@@ -50,12 +50,12 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_falsey
   end
 
-  it 'should fail a non-empty object against an empty object rule' do
+  it 'should pass a non-empty object against an empty object rule' do # The non-empty material is part of open extension
     tree = JCR.parse( '$trule=: { }' )
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
     e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"bar"}, JCR::EvalConditions.new( mapping, nil ) )
-    expect( e.success ).to be_falsey
+    expect( e.success ).to be_truthy
   end
 
   it 'should pass a non-empty object against an empty {not} annotation object rule' do
@@ -63,7 +63,7 @@ describe 'evaluate_object_rules' do
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
     e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"bar"}, JCR::EvalConditions.new( mapping, nil ) )
-    expect( e.success ).to be_truthy
+    expect( e.success ).to be_falsey
   end
 
   it 'should fail an empty object against an object rule with a string member' do
