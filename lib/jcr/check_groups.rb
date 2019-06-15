@@ -145,7 +145,7 @@ module JCR
     elsif node.is_a? Hash
       if node[:target_rule_name]
         trule = get_name_mapping(node[:target_rule_name][:rule_name], mapping)
-        disallowed_group_in_object?(trule, mapping)
+        disallowed_group_in_object?(trule, mapping) unless trule[:object_rule]
       elsif node[:group_rule]
         disallowed_group_in_object?(node[:group_rule], mapping)
       end
