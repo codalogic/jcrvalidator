@@ -297,6 +297,18 @@ module JCR
     return false, nil
   end
 
+  def self.get_group_or_object_mixin rule, econs
+    return rule[:group_rule], nil if rule[:group_rule]
+    return rule[:object_rule], nil if rule[:object_rule]
+    #else
+    if rule[:target_rule_name]
+      target, target_annotations = get_target_rule( rule, econs )
+      return get_group_or_object_mixin( target, econs )[0], target_annotations
+    end
+    #else
+    return false, nil
+  end
+
   def self.get_leaf_rule rule, econs
     if rule[:target_rule_name ]
       target, target_annotations = get_target_rule( rule, econs )

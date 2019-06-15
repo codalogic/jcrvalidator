@@ -82,7 +82,7 @@ module JCR
       # Also, groups must be handed the entire object, not key/values
       # as member rules use.
 
-      grule,gtarget_annotations = get_group(rule, econs)
+      grule,gtarget_annotations = get_group_or_object_mixin(rule, econs)
       if grule
 
         successes = 0
