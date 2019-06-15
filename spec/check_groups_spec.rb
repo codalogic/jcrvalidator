@@ -274,7 +274,7 @@ describe 'check_groups' do
     tree = JCR.parse( '$t={$g} $g=($m) $m={"foo":string}' )
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
-    expect{ JCR.check_groups( tree, mapping ) }.to raise_error JCR::JcrValidatorError
+    JCR.check_groups( tree, mapping )
   end
 
   it 'should pass with object with linked object mixin' do

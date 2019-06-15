@@ -161,7 +161,7 @@ module JCR
         disallowed_group_in_object?( groupee[:group_rule], mapping )
       elsif groupee[:target_rule_name]
         trule = get_name_mapping( groupee[:target_rule_name][:rule_name], mapping )
-        disallowed_group_in_object?( trule, mapping )
+        disallowed_group_in_object?( trule, mapping ) unless trule[:object_rule]
       elsif groupee[:array_rule]
         raise_group_error( "groups in object rules cannot have array rules", groupee[:member_rule] )
       elsif groupee[:object_rule]
