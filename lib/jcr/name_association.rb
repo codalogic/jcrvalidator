@@ -23,22 +23,26 @@ module JCR
     def initialize
     end
     
-    def self.to_key rule
+    def self.key rule
+      return rule[:member_name_key] if rule[:member_name_key]
+      key = ''
       if rule[:member_name]
-        return "l" + rule[:member_name][:q_string].to_s
+        key = "l" + rule[:member_name][:q_string].to_s
       elsif rule[:member_regex][:regex]
         if rule[:member_regex][:regex].is_a? Array
-          return "w"    # Wildcard = //
+          key = "w"    # Wildcard = //
         else
           re_modifiers =
                   rule[:member_regex][:regex_modifiers].is_a?( Array ) ?
                   "" :
                   rule[:member_regex][:regex_modifiers].to_s
-          return "r" + re_modifiers + "/" + rule[:member_regex][:regex]
+          key = "r" + re_modifiers + "/" + rule[:member_regex][:regex]
         end
+      else
+        raise JCR::JcrValidatorError, "Unrecognised member name format for rule: " + rule.to_s
       end
-      #else
-      raise JCR::JcrValidatorError, "Unrecognised member name format for rule: " + rule.to_s
+      rule[:member_name_key] = key
+      return key
     end
   end
 end

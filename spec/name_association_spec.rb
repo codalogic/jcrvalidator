@@ -20,22 +20,26 @@ describe 'name_association' do
 
   it 'should give a key of "lmn" for literal member name "mn"' do
     tree = JCR.parse( '$rrule = "mn" :integer' )
-    expect( JCR::NameAssociation.to_key( tree[0][:rule][:member_rule] ) ).to eq( "lmn" )
+    expect( JCR::NameAssociation.key( tree[0][:rule][:member_rule] ) ).to eq( "lmn" )
+    expect( tree[0][:rule][:member_rule][:member_name_key] ).to eq( "lmn" )
   end
 
   it 'should give a key of "r/mn" for regex member name /mn/' do
     tree = JCR.parse( '$rrule = /mn/ :integer' )
-    expect( JCR::NameAssociation.to_key( tree[0][:rule][:member_rule] ) ).to eq( "r/mn" )
+    expect( JCR::NameAssociation.key( tree[0][:rule][:member_rule] ) ).to eq( "r/mn" )
+    expect( tree[0][:rule][:member_rule][:member_name_key] ).to eq( "r/mn" )
   end
 
   it 'should give a key of "rix/mn" for regex member name /mn/ix' do
     tree = JCR.parse( '$rrule = /mn/ix :integer' )
-    expect( JCR::NameAssociation.to_key( tree[0][:rule][:member_rule] ) ).to eq( "rix/mn" )
+    expect( JCR::NameAssociation.key( tree[0][:rule][:member_rule] ) ).to eq( "rix/mn" )
+    expect( tree[0][:rule][:member_rule][:member_name_key] ).to eq( "rix/mn" )
   end
 
   it 'should give a key of "w" for wildcard member name //' do
     tree = JCR.parse( '$rrule = // :integer' )
-    expect( JCR::NameAssociation.to_key( tree[0][:rule][:member_rule] ) ).to eq( "w" )
+    expect( JCR::NameAssociation.key( tree[0][:rule][:member_rule] ) ).to eq( "w" )
+    expect( tree[0][:rule][:member_rule][:member_name_key] ).to eq( "w" )
   end
 
 end
