@@ -42,4 +42,73 @@ describe 'name_association' do
     expect( tree[0][:rule][:member_rule][:member_name_key] ).to eq( "w" )
   end
 
+  it 'should give key of "lmn" jcr member names "mn", /mn/, //' do
+    tree = JCR.parse( '$rrule = "mn" :integer $r2 = /mn/ : string $r3 = // : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    na.add_rule_name tree[2][:rule][:member_rule]
+    expect( na.key_from_json( "mn" ) ).to eq( "lmn" )
+  end
+
+  it 'should give key of "lmn" jcr member names //, "mn", /mn/' do
+    tree = JCR.parse( '$r3 = // : string $rrule = "mn" :integer $r2 = /mn/ : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    na.add_rule_name tree[2][:rule][:member_rule]
+    expect( na.key_from_json( "mn" ) ).to eq( "lmn" )
+  end
+
+  it 'should give key of "lmn" jcr member names /mn/, "mn", //' do
+    tree = JCR.parse( '$r2 = /mn/ : string $rrule = "mn" :integer $r3 = // : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    na.add_rule_name tree[2][:rule][:member_rule]
+    expect( na.key_from_json( "mn" ) ).to eq( "lmn" )
+  end
+
+  it 'should give key of "r/mn" jcr member names /mn/, //' do
+    tree = JCR.parse( '$r2 = /mn/ : string $r3 = // : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    expect( na.key_from_json( "mn" ) ).to eq( "r/mn" )
+  end
+
+  it 'should give key of "r/mn" jcr member names //, /mn/' do
+    tree = JCR.parse( '$r3 = // : string $r2 = /mn/ : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    expect( na.key_from_json( "mn" ) ).to eq( "r/mn" )
+  end
+
+  it 'should give key of "r/mn" with json name "mno" with jcr member names "mn", /mn/, //' do
+    tree = JCR.parse( '$rrule = "mn" :integer $r2 = /mn/ : string $r3 = // : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    na.add_rule_name tree[2][:rule][:member_rule]
+    expect( na.key_from_json( "mno" ) ).to eq( "r/mn" )
+  end
+
+  it 'should give key of "w" with json name "xyz" with jcr member names "mn", /mn/, //' do
+    tree = JCR.parse( '$rrule = "mn" :integer $r2 = /mn/ : string $r3 = // : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    na.add_rule_name tree[2][:rule][:member_rule]
+    expect( na.key_from_json( "xyz" ) ).to eq( "w" )
+  end
+
+  it 'should give key of "" with json name "xyz" with jcr member names "mn", /mn/' do
+    tree = JCR.parse( '$rrule = "mn" :integer $r2 = /mn/ : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    expect( na.key_from_json( "xyz" ) ).to eq( "" )
+  end
+
 end

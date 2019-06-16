@@ -12,37 +12,105 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 # IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-require 'jcr/parser'
-require 'jcr/map_rule_names'
-require 'jcr/check_groups'
-require 'jcr/evaluate_rules'
-
 module JCR
 
   class NameAssociation
     def initialize
+      @json_to_key = {}
+      @key_to_string_tester = {}
+      @key_to_regex_tester = {}
+      @key_to_wildcard_tester = {}
+    end
+    
+    def add_rule_name rule
+      k = NameAssociation.key rule
+      if rule[:member_name]
+        if ! @key_to_string_tester[k]
+          @key_to_string_tester[k] = NameTesterString.new rule[:member_name][:q_string].to_s
+        end
+      elsif rule[:member_regex][:regex]
+        if rule[:member_regex][:regex].is_a? Array
+          if ! @key_to_wildcard_tester[k]
+            @key_to_wildcard_tester[k] = NameTesterWildcard.new
+          end
+        else
+          if ! @key_to_regex_tester[k]
+            re_modifiers =
+                    rule[:member_regex][:regex_modifiers].is_a?( Array ) ?
+                    "" :
+                    rule[:member_regex][:regex_modifiers].to_s
+            @key_to_regex_tester[k] = NameTesterRegex.new rule[:member_regex][:regex], re_modifiers
+          end
+        end
+      else
+        raise JCR::JcrValidatorError, "Unrecognised member name format for rule: " + rule.to_s
+      end
+    end
+    
+    def key_from_json json_name
+      res = @json_to_key[json_name]
+      return res if res
+      res = key_from_json_internal json_name
+      @json_to_key[json_name] = res
+      return res
+    end
+    
+    private def key_from_json_internal json_name
+      @key_to_string_tester.each { |k,v| return k if v.is_match json_name }
+      @key_to_regex_tester.each { |k,v| return k if v.is_match json_name }
+      @key_to_wildcard_tester.each { |k,v| return k if v.is_match json_name }
+      return "" # Empty string == match not found
     end
     
     def self.key rule
       return rule[:member_name_key] if rule[:member_name_key]
-      key = ''
+      k = ''
       if rule[:member_name]
-        key = "l" + rule[:member_name][:q_string].to_s
+        k = "l" + rule[:member_name][:q_string].to_s
       elsif rule[:member_regex][:regex]
         if rule[:member_regex][:regex].is_a? Array
-          key = "w"    # Wildcard = //
+          k = "w"    # Wildcard = //
         else
           re_modifiers =
                   rule[:member_regex][:regex_modifiers].is_a?( Array ) ?
                   "" :
                   rule[:member_regex][:regex_modifiers].to_s
-          key = "r" + re_modifiers + "/" + rule[:member_regex][:regex]
+          k = "r" + re_modifiers + "/" + rule[:member_regex][:regex]
         end
       else
         raise JCR::JcrValidatorError, "Unrecognised member name format for rule: " + rule.to_s
       end
-      rule[:member_name_key] = key
-      return key
+      rule[:member_name_key] = k
+      return k
+    end
+    
+    class NameTesterString
+      def initialize name
+        @name = name
+      end
+      
+      def is_match name
+        @name == name
+      end
+    end
+    
+    class NameTesterRegex
+      def initialize re, options
+        @regex = Regexp.new re
+      end
+      
+      def is_match name
+        @regex =~ name
+      end
+    end
+    
+    class NameTesterWildcard
+      def initialize
+      end
+      
+      def is_match name
+        true
+      end
     end
   end
 end
