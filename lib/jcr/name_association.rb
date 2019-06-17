@@ -63,7 +63,7 @@ module JCR
     end
     
     def self.key rule
-      return rule[:member_name_key] if rule[:member_name_key]
+      return rule[:_member_name_key] if rule[:_member_name_key]
       k = ''
       if rule[:member_name]
         k = "l" + rule[:member_name][:q_string].to_s
@@ -80,7 +80,7 @@ module JCR
       else
         raise JCR::JcrValidatorError, "Unrecognised member name format for rule: " + rule.to_s
       end
-      rule[:member_name_key] = k
+      rule[:_member_name_key] = k
       return k
     end
     

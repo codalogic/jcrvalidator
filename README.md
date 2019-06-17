@@ -246,3 +246,11 @@ To run the unit tests on native Windows (Ruby installed via RubyInstaller):
 ```
 $ bundle exec rake win_test
 ````
+
+## Implementation Notes
+
+The parslet produces a tree of hashes and arrays. The hashes are accessed using
+identifiers such as rule[:member_rule]. During validation, additional hash members
+may be added. To avoid conflict with names that maybe included future versions of
+the ABNF, all additional hash values start with an underscore. e.g.
+rule[:_is_choice].
