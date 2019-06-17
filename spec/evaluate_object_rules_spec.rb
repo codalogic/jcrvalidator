@@ -642,12 +642,20 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_truthy
   end
 
-  it 'should fail optional object with mandatory member and optional member when only optional member is present in instance' do
-    tree = JCR.parse( '$trule=: { ( "s1":string, "s2":string ? ) ? }' )
+  it 'should fail optional group with mandatory member and optional member when only optional member is present in instance' do
+    tree = JCR.parse( '$trule=: { "s0":string, ( "s1":string, "s2":string ? ) ? }' )
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
-    e = JCR.evaluate_rule( tree[0], tree[0], {"s2"=>"fizz" }, JCR::EvalConditions.new( mapping, nil ) )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "s0"=>"s", "s2"=>"fizz" }, JCR::EvalConditions.new( mapping, nil ) )
     expect( e.success ).to be_falsey
+  end
+
+  it 'should pass optional group with mandatory member and optional member when no members are present in instance' do
+    tree = JCR.parse( '$trule=: { "s0":string, ( "s1":string, "s2":string ? ) ? }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "s0"=>"s" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
   end
 
   it 'should pass a restricted object' do
