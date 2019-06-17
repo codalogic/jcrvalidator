@@ -251,6 +251,22 @@ module JCR
     return rules, annotations
   end
 
+  def self.each_member rule, econs, &b
+    rule = [ rule ] if rule.is_a? Hash
+    rule.each do |sub|
+      case
+        when sub[:member_rule]
+          yield sub[:member_rule]
+        when sub[:object_rule],sub[:group_rule]
+          target, _ = get_group_or_object_mixin( sub, econs )
+          each_member target, econs, &b
+        when sub[:target_rule_name]
+          target, _ = get_target_rule( sub, econs )
+          each_member target, econs, &b
+      end
+    end
+  end
+
   def self.merge_rules rules
     new_rule = Hash.new
     rules.each do |rule|
