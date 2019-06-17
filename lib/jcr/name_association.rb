@@ -95,8 +95,20 @@ module JCR
     end
     
     class NameTesterRegex
+      @@regex_cache = {}
+
       def initialize re, options
-        @regex = Regexp.new re
+        re_key = options + "/" + re
+        @regex = @@regex_cache[re_key]
+        return if @regex
+        
+        re_options = 0
+        if options != ""
+          re_options |= Regexp::IGNORECASE if options.include? 'i'
+          re_options |= Regexp::EXTENDED if options.include? 'x'
+          re_options |= Regexp::MULTILINE if options.include? 's' # This maybe a Ruby specific option
+        end
+        @@regex_cache[re_key] = @regex = Regexp.new re, re_options
       end
       
       def is_match name
