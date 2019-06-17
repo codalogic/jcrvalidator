@@ -178,6 +178,40 @@ describe 'evaluate_rules' do
   end
 
   #
+  # is_choice tests
+  #
+
+  it 'should say true when is_choice() is called with a choice' do
+    tree = JCR.parse( '{ "foo":string | "bar":string }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_truthy
+  end
+
+  it 'should say false when is_choice() is called with a sequence' do
+    tree = JCR.parse( '{ "foo":string, "bar":string }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_falsey
+  end
+
+  it 'should say false when is_choice() is called with a single member object' do
+    tree = JCR.parse( '{ "foo":string }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_falsey
+  end
+
+  it 'should say false when is_choice() is called with a empty object' do
+    tree = JCR.parse( '{ }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_falsey
+  end
+
+  it 'should say true when is_choice() is called with a single member object with the @{choice} annotation' do
+    tree = JCR.parse( '@{choice} { "foo":string }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_truthy
+  end
+
+  it 'should say true when is_choice() is called with a empty object with the @{choice} annotation' do
+    tree = JCR.parse( '@{choice} { }' )
+    expect( JCR.is_choice( tree[0][:object_rule] ) ).to be_truthy
+  end
+
+  #
   # plain text serialization
   #
 

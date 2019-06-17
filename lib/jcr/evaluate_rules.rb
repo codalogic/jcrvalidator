@@ -259,6 +259,15 @@ module JCR
     nil
   end
 
+  def self.is_choice rule
+    rules, annotations = get_rules_and_annotations rule
+    rules.each do |r|
+      return false if r[:sequence_combiner]
+      return true if r[:choice_combiner]
+    end
+    return has_annotation annotations, :choice_annotation
+  end
+
   def self.has_annotation rule_or_annotations, key
     get_annotation( rule_or_annotations, key ) != nil
   end
