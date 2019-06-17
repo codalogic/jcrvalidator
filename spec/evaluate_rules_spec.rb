@@ -135,6 +135,15 @@ describe 'evaluate_rules' do
     expect( names ).to eq( [ "lfoo", "ltg1", "ltg21", "ltg2", "lc2", "lbar" ] )
   end
 
+  it 'should iterate over each object member with recursive target groups' do
+    tree = JCR.parse( '{ "foo":string, $tg1, "bar":string } $tg1 = ("tg1":string, ($tg1|"end":string))' ) # This is a contrived test case. Likely a user specification error
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    names = []
+    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+    expect( names ).to eq( [ "lfoo", "ltg1", "lend", "lbar" ] )
+  end
+
   #
   # plain text serialization
   #
