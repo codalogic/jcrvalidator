@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2017 American Registry for Internet Numbers
+# Copyright (c) 2015-2019 American Registry for Internet Numbers
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -232,16 +232,12 @@ module JCR
       i = 0
       jcr.each do |sub|
         case
-          when sub[:unordered_annotation]
+          when sub[:not_annotation], sub[:unordered_annotation], sub[:root_annotation],
+                   sub[:exclude_min_annotation], sub[:exclude_max_annotation], sub[:default_annotation],
+                   sub[:format_annotation], sub[:choice_annotation], sub[:augments_annotation], sub[:tbd_annotation]
             annotations << sub
             i = i + 1
-          when sub[:not_annotation]
-            annotations << sub
-            i = i + 1
-          when sub[:root_annotation]
-            annotations << sub
-            i = i + 1
-          when sub[:primitive_rule],sub[:object_rule],sub[:group_rule],sub[:array_rule],sub[:target_rule_name]
+          when sub[:primitive_rule], sub[:object_rule], sub[:group_rule], sub[:array_rule], sub[:target_rule_name]
             break
         end
       end
@@ -249,6 +245,22 @@ module JCR
     end
 
     return rules, annotations
+  end
+
+  def self.get_annotation rule_or_annotations, key
+    if rule_or_annotations.is_a?( Hash )
+      rule_or_annotations = [ rule_or_annotations ]
+    end
+
+    if rule_or_annotations.is_a? Array
+      rule_or_annotations.each { |anno| return anno if anno[key] }
+    end
+
+    nil
+  end
+
+  def self.has_annotation rule_or_annotations, key
+    get_annotation( rule_or_annotations, key ) != nil
   end
 
   def self.each_member rule, econs, loop_detect = nil, &b

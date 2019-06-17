@@ -145,6 +145,39 @@ describe 'evaluate_rules' do
   end
 
   #
+  # get_annotation and has_annotation tests
+  #
+
+  it 'should return choice annotation with get_rules_and_annotations()' do
+    tree = JCR.parse( '@{choice} @{not} { "foo":string, "bar":string }' )
+    _, annotations = JCR.get_rules_and_annotations tree[0][:object_rule]
+    expect( JCR.has_annotation( annotations, :choice_annotation ) ).to be_truthy
+  end
+
+  it 'should return choice annotation with get_rules_and_annotations()' do
+    tree = JCR.parse( '@{choice} @{root} @{not} { "foo":string, "bar":string }' )
+    _, annotations = JCR.get_rules_and_annotations tree[0][:object_rule]
+    expect( JCR.has_annotation( annotations, :root_annotation ) ).to be_truthy
+  end
+
+  it 'should not return choice annotation with get_rules_and_annotations() when not present' do
+    tree = JCR.parse( '@{not} { "foo":string, "bar":string }' )
+    _, annotations = JCR.get_rules_and_annotations tree[0][:object_rule]
+    expect( JCR.has_annotation( annotations, :choice_annotation ) ).to be_falsey
+  end
+
+  it 'should return choice annotation from a rule' do
+    tree = JCR.parse( '@{not} @{choice} { "foo":string, "bar":string }' )
+    expect( JCR.has_annotation( tree[0][:object_rule], :choice_annotation ) ).to be_truthy
+  end
+
+  it 'should return augments annotation from a rule' do
+    tree = JCR.parse( '@{augments $foo} { "foo":string, "bar":string }' )
+    augments_anno = JCR.get_annotation( tree[0][:object_rule], :augments_annotation )
+    expect( augments_anno ).to be_truthy
+  end
+
+  #
   # plain text serialization
   #
 
