@@ -111,4 +111,12 @@ describe 'name_association' do
     expect( na.key_from_json( "xyz" ) ).to eq( "" )
   end
 
+  it 'should raise an exception in a JSON name matches JCR name specs' do
+    tree = JCR.parse( '$rrule = /p[0-9]/ :integer $r2 = /p[0-9]+/ : string' )
+    na = JCR::NameAssociation.new
+    na.add_rule_name tree[0][:rule][:member_rule]
+    na.add_rule_name tree[1][:rule][:member_rule]
+    expect{ na.key_from_json( "p2" ) }.to raise_error JCR::JcrValidatorError
+  end
+
 end

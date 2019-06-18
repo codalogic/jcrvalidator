@@ -57,7 +57,12 @@ module JCR
     
     private def key_from_json_internal json_name
       @key_to_string_tester.each { |k,v| return k if v.is_match json_name }
-      @key_to_regex_tester.each { |k,v| return k if v.is_match json_name }
+
+      re_matches = []
+      @key_to_regex_tester.each { |k,v| re_matches.push( k ) if v.is_match json_name }
+      return re_matches[0] if re_matches.length == 1
+      raise JCR::JcrValidatorError, "JSON name: '#{json_name}' matches multiple name keys: #{re_matches}" if re_matches.length > 1
+
       @key_to_wildcard_tester.each { |k,v| return k if v.is_match json_name }
       return "" # Empty string == match not found
     end
