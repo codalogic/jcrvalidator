@@ -12,6 +12,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 # IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+require 'set'
+
 require 'ipaddr'
 require 'time'
 require 'pp'
@@ -287,6 +289,27 @@ module JCR
         when sub[:target_rule_name]
           target, _ = get_target_rule( sub, econs )
           each_member target, econs, loop_detect, &b
+      end
+    end
+  end
+
+  def self.each_non_excluded_member rule, econs, loop_detect = nil, &b
+    loop_detect = Set.new if ! loop_detect
+    return if loop_detect.include? rule.object_id
+    loop_detect << rule.object_id
+    rule = [ rule ] if rule.is_a? Hash
+    rule.each do |sub|
+      _, repeat_max, _ = get_repetitions( sub, econs )
+      next if repeat_max == 0
+      case
+        when sub[:member_rule]
+          yield sub[:member_rule]
+        when sub[:object_rule],sub[:group_rule]
+          target, _ = get_group_or_object_mixin( sub, econs )
+          each_non_excluded_member target, econs, loop_detect, &b
+        when sub[:target_rule_name]
+          target, _ = get_target_rule( sub, econs )
+          each_non_excluded_member target, econs, loop_detect, &b
       end
     end
   end

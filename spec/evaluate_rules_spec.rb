@@ -80,68 +80,195 @@ describe 'evaluate_rules' do
   #
   # each_member test
   #
+  describe 'each_member' do
 
-  it 'should iterate over each object member with no sub groups' do
-    tree = JCR.parse( '{ "foo":string, "bar":string }' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "lbar" ] )
+    it 'should iterate over each object member with no sub groups' do
+      tree = JCR.parse( '{ "foo":string, "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with sub groups' do
+      tree = JCR.parse( '{ "foo":string, ("c1":string | "c2":string ), "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lc1", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target member' do
+      tree = JCR.parse( '{ "foo":string, ($tm1 | "c2":string ), "bar":string } $tm1 = "tm1":string' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltm1", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target group' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, "tg2":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target object mixin' do
+      tree = JCR.parse( '{ "foo":string, ($to1 | "c2":string ), "bar":string } $to1 = {"to1":string, "to2":string}' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lto1", "lto2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with double depth target groups' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, $tg2, "tg2":string) $tg2 = ("tg21":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "ltg21", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with recursive target groups' do
+      tree = JCR.parse( '{ "foo":string, $tg1, "bar":string } $tg1 = ("tg1":string, ($tg1|"end":string))' ) # This is a contrived test case. Likely a user specification error
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "lend", "lbar" ] )
+    end
+
   end
 
-  it 'should iterate over each object member with sub groups' do
-    tree = JCR.parse( '{ "foo":string, ("c1":string | "c2":string ), "bar":string }' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "lc1", "lc2", "lbar" ] )
-  end
+  #
+  # each_non_excluded_member test
+  #
+  describe 'each_non_excluded_member' do
 
-  it 'should iterate over each object member with target member' do
-    tree = JCR.parse( '{ "foo":string, ($tm1 | "c2":string ), "bar":string } $tm1 = "tm1":string' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "ltm1", "lc2", "lbar" ] )
-  end
+    it 'should iterate over each object member with no sub groups' do
+      tree = JCR.parse( '{ "foo":string, "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lbar" ] )
+    end
 
-  it 'should iterate over each object member with target group' do
-    tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, "tg2":string)' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "ltg1", "ltg2", "lc2", "lbar" ] )
-  end
+    it 'should iterate over each object member with no sub groups with 1 excluded' do
+      tree = JCR.parse( '{ "foo":string *0, "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lbar" ] )
+    end
 
-  it 'should iterate over each object member with target object mixin' do
-    tree = JCR.parse( '{ "foo":string, ($to1 | "c2":string ), "bar":string } $to1 = {"to1":string, "to2":string}' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "lto1", "lto2", "lc2", "lbar" ] )
-  end
+    it 'should iterate over each object member with sub groups' do
+      tree = JCR.parse( '{ "foo":string, ("c1":string | "c2":string ), "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lc1", "lc2", "lbar" ] )
+    end
 
-  it 'should iterate over each object member with double depth target groups' do
-    tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, $tg2, "tg2":string) $tg2 = ("tg21":string)' )
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "ltg1", "ltg21", "ltg2", "lc2", "lbar" ] )
-  end
+    it 'should iterate over each object member with sub groups with one excluded' do
+      tree = JCR.parse( '{ "foo":string, ("c1":string | "c2":string *0 ), "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lc1", "lbar" ] )
+    end
 
-  it 'should iterate over each object member with recursive target groups' do
-    tree = JCR.parse( '{ "foo":string, $tg1, "bar":string } $tg1 = ("tg1":string, ($tg1|"end":string))' ) # This is a contrived test case. Likely a user specification error
-    mapping = JCR.map_rule_names( tree )
-    JCR.check_rule_target_names( tree, mapping )
-    names = []
-    JCR.each_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
-    expect( names ).to eq( [ "lfoo", "ltg1", "lend", "lbar" ] )
+    it 'should iterate over each object member with target member' do
+      tree = JCR.parse( '{ "foo":string, ($tm1 | "c2":string ), "bar":string } $tm1 = "tm1":string' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltm1", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target member with target excluded' do
+      tree = JCR.parse( '{ "foo":string, ($tm1 *0 | "c2":string ), "bar":string } $tm1 = "tm1":string' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target group' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, "tg2":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target group with one excluded' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string *0, "tg2":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target object mixin' do
+      tree = JCR.parse( '{ "foo":string, ($to1 | "c2":string ), "bar":string } $to1 = {"to1":string, "to2":string}' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lto1", "lto2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with target object mixin with one excluded' do
+      tree = JCR.parse( '{ "foo":string, ($to1 | "c2":string ), "bar":string } $to1 = {"to1":string *0, "to2":string}' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "lto2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with double depth target groups' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, $tg2, "tg2":string) $tg2 = ("tg21":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "ltg21", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with double depth target groups with oe excluded' do
+      tree = JCR.parse( '{ "foo":string, ($tg1 | "c2":string ), "bar":string } $tg1 = ("tg1":string, $tg2, "tg2":string) $tg2 = ("tg21":string *0)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "ltg2", "lc2", "lbar" ] )
+    end
+
+    it 'should iterate over each object member with recursive target groups' do
+      tree = JCR.parse( '{ "foo":string, $tg1, "bar":string } $tg1 = ("tg1":string, ($tg1|"end":string))' ) # This is a contrived test case. Likely a user specification error
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      names = []
+      JCR.each_non_excluded_member( tree[0][:object_rule], JCR::EvalConditions.new( mapping, nil ) ) { |m| names << JCR::NameAssociation.key( m ) }
+      expect( names ).to eq( [ "lfoo", "ltg1", "lend", "lbar" ] )
+    end
+
   end
 
   #
