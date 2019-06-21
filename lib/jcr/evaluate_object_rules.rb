@@ -16,14 +16,17 @@ require 'jcr/parser'
 require 'jcr/map_rule_names'
 require 'jcr/check_groups'
 require 'jcr/evaluate_rules'
+require 'jcr/name_association'
 
 module JCR
 
   class ObjectBehavior
-    attr_accessor :checked_hash
+    attr_accessor :checked_hash, :name_association, :name_key_tally
 
     def initialize
       @checked_hash = {}
+      @name_association = NameAssociation.new
+      @name_key_tally = Hash.new 0
     end
   end
 
@@ -62,7 +65,25 @@ module JCR
       Evaluation.new( true, nil ), econs, target_annotations ) if rules.empty?
 
     retval = nil
-    behavior = ObjectBehavior.new unless behavior
+    if ! behavior
+      behavior = ObjectBehavior.new
+      # Compute set of present JCR name keys
+      JCR.each_member( rules, econs ) { |r| behavior.name_association.add_rule_name r }
+      # Tally number of JSON names associated with each JCR name key
+      data.each_key { |name| behavior.name_key_tally[behavior.name_association.key_from_json(name)] += 1 }
+    end
+
+    if JCR.is_choice rules
+      all_name_keys = Set.new
+      JCR.each_non_excluded_member( rules, econs ) do |r|
+        all_name_keys << r[:_member_name_key]
+      end
+      rules.each do |sub_rule|
+        sub_name_keys = Set.new
+        JCR.each_non_excluded_member( sub_rule, econs ) { |r| sub_name_keys << r[:_member_name_key] }
+        sub_rule[:_excluded_name_keys] = all_name_keys - sub_name_keys
+      end
+    end
 
     rules.each do |rule|
 
@@ -72,6 +93,19 @@ module JCR
       elsif rule[:sequence_combiner] && retval && !retval.success
         return evaluate_not( annotations, retval, econs, target_annotations ) # short circuit
       end
+
+      has_excluded = false
+      if rule[:_excluded_name_keys]
+        data.each_key do |json_name|
+          name_key = behavior.name_association.key_from_json json_name
+          if rule[:_excluded_name_keys].include?( name_key )
+            retval = Evaluation.new( false, "JSON name #{json_name} excluded from rule #{jcr_to_s(rule)} in choice #{jcr_to_s(rules)}")
+            has_excluded = true
+          end
+        end
+      end
+
+      next if has_excluded
 
       repeat_min, repeat_max, repeat_step = get_repetitions( rule, econs )
 
@@ -89,6 +123,7 @@ module JCR
         for i in 0..repeat_max-1
           group_behavior = ObjectBehavior.new
           group_behavior.checked_hash.merge!( behavior.checked_hash )
+          group_behavior.name_association = behavior.name_association
           e = evaluate_rule( grule, rule_atom, data, econs, group_behavior, gtarget_annotations )
           if e.success
             behavior.checked_hash.merge!( group_behavior.checked_hash )

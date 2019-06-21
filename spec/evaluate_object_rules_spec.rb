@@ -883,4 +883,136 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_truthy
   end
 
+  describe 'AOR for choices' do
+
+    it 'should fail an object with a choice of two members but both members are present' do
+      tree = JCR.parse( '$trule=: { "foo":string | "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+    it 'should pass with an @{not} object with a choice of two members but both members are present' do
+      tree = JCR.parse( '$trule=: @{not} { "foo":string | "bar":string }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should fail an object with a group choice of two members but both members are present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, ("foo":string | "bar":string) }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+    it 'should pass an object with a group choice of two members but only one present present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, ("foo":string | "bar":string) }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object with a group choice of two members but only one present present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, ("foo":string | "bar":string) }' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should fail an object with a target choice of two members but both members are present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ("foo":string | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+    it 'should pass an object with a target choice of two members but only one present present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ("foo":string | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object with a target choice of two members but only one present present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ("foo":string | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should fail an object with a target choice with a sequence but too many members are present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing", "fizz"=>"other", "bar"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+    it 'should pass an object with a target choice with a sequence with both members present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "foo"=>"thing", "fizz"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object with a target choice with a sequence with both members present' do
+      tree = JCR.parse( '$trule=: { "baz" : string, $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "bar"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object choice with a target choice with only first member present' do
+      tree = JCR.parse( '$trule=: { "baz" : string | $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object choice with a target choice with only second member present' do
+      tree = JCR.parse( '$trule=: { "baz" : string | $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing", "fizz"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should pass an object choice with a target choice with only third member present' do
+      tree = JCR.parse( '$trule=: { "baz" : string | $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "bar"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_truthy
+    end
+
+    it 'should fail an object choice with a target choice with a sequence with both members present' do
+      tree = JCR.parse( '$trule=: { "baz" : string | $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "baz"=>"value", "bar"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+    it 'should fail an object choice with a target choice when the target choice fails' do
+      tree = JCR.parse( '$trule=: { "baz" : string | $r } $r = ( ("fizz":string, "foo":string) | "bar":string)' )
+      mapping = JCR.map_rule_names( tree )
+      JCR.check_rule_target_names( tree, mapping )
+      e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing", "fizz"=>"other", "bar"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+      expect( e.success ).to be_falsey
+    end
+
+  end
+
 end
