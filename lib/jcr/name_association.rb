@@ -23,6 +23,7 @@ module JCR
     end
     
     def add_rule_name rule
+      rule = rule.reduce(&:merge!) if rule.is_a?( Array ) # Seems to be needed for rules like: @{not} //:any+
       k = NameAssociation.key rule
       if rule[:member_name]
         if ! @key_to_string_tester[k]
@@ -68,6 +69,7 @@ module JCR
     end
     
     def self.key rule
+      rule = rule.reduce(&:merge!) if rule.is_a?( Array ) # Seems to be needed for rules like: @{not} //:any+
       return rule[:_member_name_key] if rule[:_member_name_key]
       k = ''
       if rule[:member_name]
