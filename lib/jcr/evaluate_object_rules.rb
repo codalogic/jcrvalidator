@@ -124,7 +124,7 @@ module JCR
           repeat_results = {}
           k = lrules[0][:member_name][:q_string].to_s
           v = data[k]
-          if v
+          if data.has_key? k
             unless behavior.checked_hash[k]
               e = evaluate_rule(rule, rule_atom, [k, v], econs, nil, nil)
               behavior.checked_hash[k] = e.success

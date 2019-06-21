@@ -867,4 +867,20 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_truthy
   end
 
+  it 'should pass a false value in a member' do
+    tree = JCR.parse( '{ "is" : boolean }')
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], {"is"=>false}, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
+  it 'should pass a null value in a member' do
+    tree = JCR.parse( '{ "is" : null }')
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], {"is"=>nil}, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
 end
