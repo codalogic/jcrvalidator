@@ -474,6 +474,22 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_falsey
   end
 
+  it 'should fail object with a string member and *0 group member when string member present' do
+    tree = JCR.parse( '$trule=: { "s1":string, ( "s2":string, "s3":string ) *0 }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], {"s1"=> "thing","s2"=>"thing2","s3"=>"thing3" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_falsey
+  end
+
+  it 'should fail object with a string member and *0 group member when string member absent' do
+    tree = JCR.parse( '$trule=: { "s1":string, ( "s2":string, "s3":string ) *0 }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], {"s1"=> "thing" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
   it 'should pass object w/ 2 mems against a string member and 1..2 group member containing a string member' do
     tree = JCR.parse( '$trule=: { "s1":string, ( /^s[2-9]$/:string *1..2 ) }' )
     mapping = JCR.map_rule_names( tree )

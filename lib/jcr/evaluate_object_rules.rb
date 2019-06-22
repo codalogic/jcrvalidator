@@ -114,7 +114,11 @@ module JCR
 
       if grule  # if a sub-group
 
-        if repeat_max > 1 || repeat_step > 1
+        if repeat_max == 0
+          if has_instances_from_group( grule, econs, behavior )
+            retval = Evaluation.new( false, "object instance contains members of disallowed sub-group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+          end
+        elsif repeat_max > 1 || repeat_step > 1
           retval = Evaluation.new( false, "sub-group in object can not have max repetitions greater than 1: #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
         else
           retval = evaluate_rule( grule, rule_atom, data, econs, behavior, gtarget_annotations )
@@ -122,10 +126,8 @@ module JCR
           if ! retval.success
             if repeat_min == 0
               # Can pass a failing sub-group if all its members are not present in the JSON instance
-              has_json_member = false
-              each_non_excluded_member( grule, econs ) { |r| has_json_member ||= (behavior.name_key_tally[NameAssociation.key( r )] > 0 ) }
-              if has_json_member
-                retval = Evaluation.new( false, "object does not contain necessary part of optional group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+              if has_instances_from_group( grule, econs, behavior )
+                retval = Evaluation.new( false, "object instance contains some but not all necessary parts of optional group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
               else
                 retval = Evaluation.new( true, nil )
               end
@@ -180,6 +182,11 @@ module JCR
     end # end rules.each
 
     return evaluate_not( annotations, retval, econs, target_annotations )
+  end
+
+  def self.has_instances_from_group( grule, econs, behavior )
+    each_non_excluded_member( grule, econs ) { |r| return true if behavior.name_key_tally[NameAssociation.key( r )] > 0 }
+    false
   end
 
   def self.object_to_s( jcr, shallow=true )
