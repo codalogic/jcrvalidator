@@ -49,22 +49,10 @@ module JCR
 
     member_match = false
 
-    if rule[:member_name]
-      match_spec = rule[:member_name][:q_string].to_s
-      if match_spec == data[ 0 ]
-        member_match = true
-      end
-    else # must be regex
-      regex = rule[:member_regex][:regex]
-      if regex.is_a? Array
-        match_spec = Regexp.new( "" )
-        trace( econs, "Noting empty regular expression." )
-      else
-        match_spec = Regexp.new( rule[:member_regex][:regex].to_s )
-      end
-      if match_spec =~ data[ 0 ]
-        member_match = true
-      end
+    if data[ 0 ] == false
+      member_match = true   # Name already matched by calling function
+    else
+      member_match = is_member_name_match( rule, data )
     end
 
     if member_match
@@ -74,9 +62,31 @@ module JCR
     end
 
     return evaluate_not( annotations,
-       Evaluation.new( false, "#{match_spec} does not match #{data[0]} for #{raised_rule( jcr, rule_atom)}" ),
+       Evaluation.new( false, "#{member_name_match_spec( rule )} does not match #{data[0]} for #{raised_rule( jcr, rule_atom)}" ),
                          econs, target_annotations )
 
+  end
+
+  def self.is_member_name_match( rule, data )
+    if rule[:member_name]
+      return true if member_name_match_spec( rule ) == data[ 0 ]
+    else # must be regex
+      return true if member_name_match_spec( rule ) =~ data[ 0 ]
+    end
+    false
+  end
+
+  def self.member_name_match_spec( rule )
+    if rule[:member_name]
+      return rule[:member_name][:q_string].to_s
+    else # must be regex
+      regex = rule[:member_regex][:regex]
+      if regex.is_a? Array
+        return Regexp.new( "" )
+      else
+        return Regexp.new( regex.to_s )
+      end
+    end
   end
 
   def self.member_to_s( jcr, shallow=true )
