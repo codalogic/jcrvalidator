@@ -30,9 +30,11 @@ module JCR
     push_trace_stack( econs, jcr )
     trace( econs, "Evaluating value rule starting at #{slice_to_s(jcr)}" )
     trace_def( econs, "value", jcr, data )
-    rules, annotations = get_rules_and_annotations( jcr )
 
-    retval = evaluate_not( annotations, evaluate_values( rules[0], rule_atom, data, econs ),
+    retval = evaluate_values( jcr, rule_atom, data, econs )
+
+    _, annotations = get_rules_and_annotations( jcr )
+    retval = evaluate_not( annotations, retval,
                            econs, target_annotations )
     trace_eval( econs, "Value", retval, jcr, data, "value")
     pop_trace_stack( econs )
@@ -40,181 +42,187 @@ module JCR
   end
 
   def self.evaluate_values jcr, rule_atom, data, econs
+    rules, annotations = get_rules_and_annotations( jcr )
+
+    has_exclude_min = has_annotation annotations, :exclude_min_annotation
+    has_exclude_max = has_annotation annotations, :exclude_max_annotation
+    rule = rules[0]
+
     case
 
       #
       # any
       #
 
-      when jcr[:any]
+      when rule[:any]
         return Evaluation.new( true, nil )
 
       #
       # integers
       #
 
-      when jcr[:integer_v]
-        si = jcr[:integer_v].to_s
+      when rule[:integer_v]
+        si = rule[:integer_v].to_s
         if si == "integer"
-          return bad_value( jcr, rule_atom, "integer", data ) unless data.is_a?( Integer )
+          return bad_value( rule, rule_atom, "integer", data ) unless data.is_a?( Integer )
         end
-      when jcr[:integer]
-        i = jcr[:integer].to_s.to_i
-        return bad_value( jcr, rule_atom, i, data ) unless data == i
-      when jcr[:integer_min] != nil && jcr[:integer_max] == nil
-        return bad_value( jcr, rule_atom, "integer", data ) unless data.is_a?( Integer )
-        min = jcr[:integer_min].to_s.to_i
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
-      when jcr[:integer_min] == nil && jcr[:integer_max] != nil
-        return bad_value( jcr, rule_atom, "integer", data ) unless data.is_a?( Integer )
-        max = jcr[:integer_max].to_s.to_i
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
-      when jcr[:integer_min],jcr[:integer_max]
-        return bad_value( jcr, rule_atom, "integer", data ) unless data.is_a?( Integer )
-        min = jcr[:integer_min].to_s.to_i
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
-        max = jcr[:integer_max].to_s.to_i
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
-      when jcr[:sized_int_v]
-        bits = jcr[:sized_int_v][:bits].to_i
-        return bad_value( jcr, rule_atom, "int" + bits.to_s, data ) unless data.is_a?( Integer )
+      when rule[:integer]
+        i = rule[:integer].to_s.to_i
+        return bad_value( rule, rule_atom, i, data ) unless data == i
+      when rule[:integer_min] != nil && rule[:integer_max] == nil
+        return bad_value( rule, rule_atom, "integer", data ) unless data.is_a?( Integer )
+        min = rule[:integer_min].to_s.to_i
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
+      when rule[:integer_min] == nil && rule[:integer_max] != nil
+        return bad_value( rule, rule_atom, "integer", data ) unless data.is_a?( Integer )
+        max = rule[:integer_max].to_s.to_i
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
+      when rule[:integer_min],rule[:integer_max]
+        return bad_value( rule, rule_atom, "integer", data ) unless data.is_a?( Integer )
+        min = rule[:integer_min].to_s.to_i
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
+        max = rule[:integer_max].to_s.to_i
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
+      when rule[:sized_int_v]
+        bits = rule[:sized_int_v][:bits].to_i
+        return bad_value( rule, rule_atom, "int" + bits.to_s, data ) unless data.is_a?( Integer )
         min = -(2**(bits-1))
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
         max = 2**(bits-1)-1
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
-      when jcr[:sized_uint_v]
-        bits = jcr[:sized_uint_v][:bits].to_i
-        return bad_value( jcr, rule_atom, "int" + bits.to_s, data ) unless data.is_a?( Integer )
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
+      when rule[:sized_uint_v]
+        bits = rule[:sized_uint_v][:bits].to_i
+        return bad_value( rule, rule_atom, "int" + bits.to_s, data ) unless data.is_a?( Integer )
         min = 0
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
         max = 2**bits-1
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
 
       #
       # floats
       #
 
-      when jcr[:float_v]
-        sf = jcr[:float_v].to_s
+      when rule[:float_v]
+        sf = rule[:float_v].to_s
         if sf == "float"
-          return bad_value( jcr, rule_atom, "float", data ) unless data.is_a?( Float )
+          return bad_value( rule, rule_atom, "float", data ) unless data.is_a?( Float )
         end
-      when jcr[:float]
-        f = jcr[:float].to_s.to_f
-        return bad_value( jcr, rule_atom, f, data ) unless data == f
-      when jcr[:float_min] != nil && jcr[:float_max] == nil
-        return bad_value( jcr, rule_atom, "float", data ) unless data.is_a?( Float )
-        min = jcr[:float_min].to_s.to_f
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
-      when jcr[:float_min] == nil && jcr[:float_max] != nil
-        return bad_value( jcr, rule_atom, "float", data ) unless data.is_a?( Float )
-        max = jcr[:float_max].to_s.to_f
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
-      when jcr[:float_min],jcr[:float_max]
-        return bad_value( jcr, rule_atom, "float", data ) unless data.is_a?( Float )
-        min = jcr[:float_min].to_s.to_f
-        return bad_value( jcr, rule_atom, min, data ) unless data >= min
-        max = jcr[:float_max].to_s.to_f
-        return bad_value( jcr, rule_atom, max, data ) unless data <= max
-      when jcr[:double_v]
-        sf = jcr[:double_v].to_s
+      when rule[:float]
+        f = rule[:float].to_s.to_f
+        return bad_value( rule, rule_atom, f, data ) unless data == f
+      when rule[:float_min] != nil && rule[:float_max] == nil
+        return bad_value( rule, rule_atom, "float", data ) unless data.is_a?( Float )
+        min = rule[:float_min].to_s.to_f
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
+      when rule[:float_min] == nil && rule[:float_max] != nil
+        return bad_value( rule, rule_atom, "float", data ) unless data.is_a?( Float )
+        max = rule[:float_max].to_s.to_f
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
+      when rule[:float_min],rule[:float_max]
+        return bad_value( rule, rule_atom, "float", data ) unless data.is_a?( Float )
+        min = rule[:float_min].to_s.to_f
+        return bad_value( rule, rule_atom, min, data ) unless min_cmp( data, min, has_exclude_min )
+        max = rule[:float_max].to_s.to_f
+        return bad_value( rule, rule_atom, max, data ) unless max_cmp( data, max, has_exclude_max )
+      when rule[:double_v]
+        sf = rule[:double_v].to_s
         if sf == "double"
-          return bad_value( jcr, rule_atom, "double", data ) unless data.is_a?( Float )
+          return bad_value( rule, rule_atom, "double", data ) unless data.is_a?( Float )
         end
 
       #
       # boolean
       #
 
-      when jcr[:true_v]
-        return bad_value( jcr, rule_atom, "true", data ) unless data
-      when jcr[:false_v]
-        return bad_value( jcr, rule_atom, "false", data ) if data
-      when jcr[:boolean_v]
-        return bad_value( jcr, rule_atom, "boolean", data ) unless ( data.is_a?( TrueClass ) || data.is_a?( FalseClass ) )
+      when rule[:true_v]
+        return bad_value( rule, rule_atom, "true", data ) unless data
+      when rule[:false_v]
+        return bad_value( rule, rule_atom, "false", data ) if data
+      when rule[:boolean_v]
+        return bad_value( rule, rule_atom, "boolean", data ) unless ( data.is_a?( TrueClass ) || data.is_a?( FalseClass ) )
 
       #
       # strings
       #
 
-      when jcr[:string]
-        return bad_value( jcr, rule_atom, "string", data ) unless data.is_a? String
-      when jcr[:q_string]
-        s = jcr[:q_string].to_s
-        return bad_value( jcr, rule_atom, s, data ) unless data == s
+      when rule[:string]
+        return bad_value( rule, rule_atom, "string", data ) unless data.is_a? String
+      when rule[:q_string]
+        s = rule[:q_string].to_s
+        return bad_value( rule, rule_atom, s, data ) unless data == s
 
       #
       # regex
       #
 
-      when jcr[:regex]
-        regex = Regexp.new( jcr[:regex].to_s )
-        return bad_value( jcr, rule_atom, regex, data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, regex, data ) unless data =~ regex
+      when rule[:regex]
+        regex = Regexp.new( rule[:regex].to_s )
+        return bad_value( rule, rule_atom, regex, data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, regex, data ) unless data =~ regex
 
       #
       # ip addresses
       #
 
-      when jcr[:ipv4]
-        return bad_value( jcr, rule_atom, "IPv4 Address", data ) unless data.is_a? String
+      when rule[:ipv4]
+        return bad_value( rule, rule_atom, "IPv4 Address", data ) unless data.is_a? String
         begin
           ip = IPAddr.new( data )
         rescue IPAddr::InvalidAddressError
-          return bad_value( jcr, rule_atom, "IPv4 Address", data )
+          return bad_value( rule, rule_atom, "IPv4 Address", data )
         end
-        return bad_value( jcr, rule_atom, "IPv4 Address", data ) unless ip.ipv4?
-      when jcr[:ipv6]
-        return bad_value( jcr, rule_atom, "IPv6 Address", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "IPv4 Address", data ) unless ip.ipv4?
+      when rule[:ipv6]
+        return bad_value( rule, rule_atom, "IPv6 Address", data ) unless data.is_a? String
         begin
           ip = IPAddr.new( data )
         rescue IPAddr::InvalidAddressError
-          return bad_value( jcr, rule_atom, "IPv6 Address", data )
+          return bad_value( rule, rule_atom, "IPv6 Address", data )
         end
-        return bad_value( jcr, rule_atom, "IPv6 Address", data ) unless ip.ipv6?
-      when jcr[:ipaddr]
-        return bad_value( jcr, rule_atom, "IP Address", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "IPv6 Address", data ) unless ip.ipv6?
+      when rule[:ipaddr]
+        return bad_value( rule, rule_atom, "IP Address", data ) unless data.is_a? String
         begin
           ip = IPAddr.new( data )
         rescue IPAddr::InvalidAddressError
-          return bad_value( jcr, rule_atom, "IP Address", data )
+          return bad_value( rule, rule_atom, "IP Address", data )
         end
-        return bad_value( jcr, rule_atom, "IP Address", data ) unless ip.ipv6? || ip.ipv4?
+        return bad_value( rule, rule_atom, "IP Address", data ) unless ip.ipv6? || ip.ipv4?
 
       #
       # domain names
       #
 
-      when jcr[:fqdn]
-        return bad_value( jcr, rule_atom, "Fully Qualified Domain Name", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Fully Qualified Domain Name", data ) if data.empty?
+      when rule[:fqdn]
+        return bad_value( rule, rule_atom, "Fully Qualified Domain Name", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Fully Qualified Domain Name", data ) if data.empty?
         a = data.split( '.' )
         a.each do |label|
-          return bad_value( jcr, rule_atom, "Fully Qualified Domain Name", data ) if label.start_with?( '-' )
-          return bad_value( jcr, rule_atom, "Fully Qualified Domain Name", data ) if label.end_with?( '-' )
+          return bad_value( rule, rule_atom, "Fully Qualified Domain Name", data ) if label.start_with?( '-' )
+          return bad_value( rule, rule_atom, "Fully Qualified Domain Name", data ) if label.end_with?( '-' )
           label.each_char do |char|
             unless (char >= 'a' && char <= 'z') \
               || (char >= 'A' && char <= 'Z') \
               || (char >= '0' && char <='9') \
               || char == '-'
-              return bad_value( jcr, rule_atom, "Fully Qualified Domain Name", data )
+              return bad_value( rule, rule_atom, "Fully Qualified Domain Name", data )
             end
           end
         end
-      when jcr[:idn]
-        return bad_value( jcr, rule_atom, "Internationalized Domain Name", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Internationalized Domain Name", data ) if data.empty?
+      when rule[:idn]
+        return bad_value( rule, rule_atom, "Internationalized Domain Name", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Internationalized Domain Name", data ) if data.empty?
         a = data.split( '.' )
         a.each do |label|
-          return bad_value( jcr, rule_atom, "Internationalized Domain Name", data ) if label.start_with?( '-' )
-          return bad_value( jcr, rule_atom, "Internationalized Domain Name", data ) if label.end_with?( '-' )
+          return bad_value( rule, rule_atom, "Internationalized Domain Name", data ) if label.start_with?( '-' )
+          return bad_value( rule, rule_atom, "Internationalized Domain Name", data ) if label.end_with?( '-' )
           label.each_char do |char|
             unless (char >= 'a' && char <= 'z') \
               || (char >= 'A' && char <= 'Z') \
               || (char >= '0' && char <='9') \
               || char == '-' \
               || char.ord > 127
-              return bad_value( jcr, rule_atom, "Internationalized Domain Name", data )
+              return bad_value( rule, rule_atom, "Internationalized Domain Name", data )
             end
           end
         end
@@ -223,43 +231,43 @@ module JCR
       # uri and uri scheme
       #
 
-      when jcr[:uri]
-        if jcr[:uri].is_a? Hash
-          t = jcr[:uri][:uri_scheme].to_s
-          return bad_value( jcr, rule_atom, t, data ) unless data.is_a? String
-          return bad_value( jcr, rule_atom, t, data ) unless data.start_with?( t )
+      when rule[:uri]
+        if rule[:uri].is_a? Hash
+          t = rule[:uri][:uri_scheme].to_s
+          return bad_value( rule, rule_atom, t, data ) unless data.is_a? String
+          return bad_value( rule, rule_atom, t, data ) unless data.start_with?( t )
         else
-          return bad_value( jcr, rule_atom, "URI", data ) unless data.is_a?( String )
+          return bad_value( rule, rule_atom, "URI", data ) unless data.is_a?( String )
           uri = Addressable::URI.parse( data )
-          return bad_value( jcr, rule_atom, "URI", data ) unless uri.is_a?( Addressable::URI )
+          return bad_value( rule, rule_atom, "URI", data ) unless uri.is_a?( Addressable::URI )
         end
 
       #
       # phone and email value rules
       #
 
-      when jcr[:email]
-        return bad_value( jcr, rule_atom, "Email Address", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Email Address", data ) unless EmailAddressValidator.validate( data, true )
+      when rule[:email]
+        return bad_value( rule, rule_atom, "Email Address", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Email Address", data ) unless EmailAddressValidator.validate( data, true )
 
-      when jcr[:phone]
-        return bad_value( jcr, rule_atom, "Phone Number", data ) unless data.is_a? String
+      when rule[:phone]
+        return bad_value( rule, rule_atom, "Phone Number", data ) unless data.is_a? String
         p = BigPhoney::PhoneNumber.new( data )
-        return bad_value( jcr, rule_atom, "Phone Number", data ) unless p.valid?
+        return bad_value( rule, rule_atom, "Phone Number", data ) unless p.valid?
 
       #
       # hex values
       #
 
-      when jcr[:hex]
-        return bad_value( jcr, rule_atom, "Hex Data", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Hex Data", data ) unless data.length % 2 == 0
+      when rule[:hex]
+        return bad_value( rule, rule_atom, "Hex Data", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Hex Data", data ) unless data.length % 2 == 0
         pad_start = false
         data.each_char do |char|
           unless (char >= '0' && char <='9') \
               || (char >= 'A' && char <= 'F') \
               || (char >= 'a' && char <= 'f')
-            return bad_value( jcr, rule_atom, "Hex Data", data )
+            return bad_value( rule, rule_atom, "Hex Data", data )
           end
         end
 
@@ -267,20 +275,20 @@ module JCR
       # base32hex values
       #
 
-      when jcr[:base32hex]
-        return bad_value( jcr, rule_atom, "Base32hex Data", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Base32hex Data", data ) unless data.length % 8 == 0
+      when rule[:base32hex]
+        return bad_value( rule, rule_atom, "Base32hex Data", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Base32hex Data", data ) unless data.length % 8 == 0
         pad_start = false
         data.each_char do |char|
           if char == '='
             pad_start = true
           elsif pad_start && char != '='
-            return bad_value( jcr, rule_atom, "Base32hex Data", data )
+            return bad_value( rule, rule_atom, "Base32hex Data", data )
           else 
               unless (char >= '0' && char <='9') \
                   || (char >= 'A' && char <= 'V') \
                   || (char >= 'a' && char <= 'v')
-                return bad_value( jcr, rule_atom, "Base32hex Data", data )
+                return bad_value( rule, rule_atom, "Base32hex Data", data )
               end
           end
         end
@@ -289,20 +297,20 @@ module JCR
       # base32 values
       #
 
-      when jcr[:base32]
-        return bad_value( jcr, rule_atom, "Base 32 Data", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Base 32 Data", data ) unless data.length % 8 == 0
+      when rule[:base32]
+        return bad_value( rule, rule_atom, "Base 32 Data", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Base 32 Data", data ) unless data.length % 8 == 0
         pad_start = false
         data.each_char do |char|
           if char == '='
             pad_start = true
           elsif pad_start && char != '='
-            return bad_value( jcr, rule_atom, "Base 32 Data", data )
+            return bad_value( rule, rule_atom, "Base 32 Data", data )
           else 
               unless (char >= 'a' && char <= 'z') \
                   || (char >= 'A' && char <= 'Z') \
                   || (char >= '2' && char <='7')
-                return bad_value( jcr, rule_atom, "Base 32 Data", data )
+                return bad_value( rule, rule_atom, "Base 32 Data", data )
               end
           end
         end
@@ -311,21 +319,21 @@ module JCR
       # base64url values
       #
 
-      when jcr[:base64url]
-        return bad_value( jcr, rule_atom, "Base64url Data", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Base64url Data", data ) unless data.length % 4 == 0
+      when rule[:base64url]
+        return bad_value( rule, rule_atom, "Base64url Data", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Base64url Data", data ) unless data.length % 4 == 0
         pad_start = false
         data.each_char do |char|
           if char == '='
             pad_start = true
           elsif pad_start && char != '='
-            return bad_value( jcr, rule_atom, "Base64url Data", data )
+            return bad_value( rule, rule_atom, "Base64url Data", data )
           else 
               unless (char >= 'a' && char <= 'z') \
                   || (char >= 'A' && char <= 'Z') \
                   || (char >= '0' && char <='9') \
                   || char == '-' || char == '_'
-                return bad_value( jcr, rule_atom, "Base64url Data", data )
+                return bad_value( rule, rule_atom, "Base64url Data", data )
               end
           end
         end
@@ -334,21 +342,21 @@ module JCR
       # base64 values
       #
 
-      when jcr[:base64]
-        return bad_value( jcr, rule_atom, "Base 64 Data", data ) unless data.is_a? String
-        return bad_value( jcr, rule_atom, "Base 64 Data", data ) unless data.length % 4 == 0
+      when rule[:base64]
+        return bad_value( rule, rule_atom, "Base 64 Data", data ) unless data.is_a? String
+        return bad_value( rule, rule_atom, "Base 64 Data", data ) unless data.length % 4 == 0
         pad_start = false
         data.each_char do |char|
           if char == '='
             pad_start = true
           elsif pad_start && char != '='
-            return bad_value( jcr, rule_atom, "Base 64 Data", data )
+            return bad_value( rule, rule_atom, "Base 64 Data", data )
           else 
               unless (char >= 'a' && char <= 'z') \
                   || (char >= 'A' && char <= 'Z') \
                   || (char >= '0' && char <='9') \
                   || char == '+' || char == '/'
-                return bad_value( jcr, rule_atom, "Base 64 Data", data )
+                return bad_value( rule, rule_atom, "Base 64 Data", data )
               end
           end
         end
@@ -357,48 +365,58 @@ module JCR
       # time and date values
       #
 
-      when jcr[:datetime]
-        return bad_value( jcr, rule_atom, "Time and Date", data ) unless data.is_a? String
+      when rule[:datetime]
+        return bad_value( rule, rule_atom, "Time and Date", data ) unless data.is_a? String
         begin
           Time.iso8601( data )
         rescue ArgumentError
-          return bad_value( jcr, rule_atom, "Time and Date", data )
+          return bad_value( rule, rule_atom, "Time and Date", data )
         end
-      when jcr[:date]
-        return bad_value( jcr, rule_atom, "Date", data ) unless data.is_a? String
+      when rule[:date]
+        return bad_value( rule, rule_atom, "Date", data ) unless data.is_a? String
         begin
           d = data + "T23:20:50.52Z"
           Time.iso8601( d )
         rescue ArgumentError
-          return bad_value( jcr, rule_atom, "Date", data )
+          return bad_value( rule, rule_atom, "Date", data )
         end
-      when jcr[:time]
-        return bad_value( jcr, rule_atom, "Time", data ) unless data.is_a? String
+      when rule[:time]
+        return bad_value( rule, rule_atom, "Time", data ) unless data.is_a? String
         begin
           t = "1985-04-12T" + data + "Z"
           Time.iso8601( t )
         rescue ArgumentError
-          return bad_value( jcr, rule_atom, "Time", data )
+          return bad_value( rule, rule_atom, "Time", data )
         end
 
       #
       # null
       #
 
-      when jcr[:null]
-        return bad_value( jcr, rule_atom, nil, data ) unless data == nil
+      when rule[:null]
+        return bad_value( rule, rule_atom, nil, data ) unless data == nil
 
       #
       # groups
       #
 
-      when jcr[:group_rule]
-        return evaluate_group_rule jcr[:group_rule], rule_atom, data, econs
+      when rule[:group_rule]
+        return evaluate_group_rule rule[:group_rule], rule_atom, data, econs
 
       else
         raise "unknown value rule evaluation. this shouldn't happen"
     end
     return Evaluation.new( true, nil )
+  end
+
+  def self.min_cmp data, min, is_min_excluded
+    return data > min if is_min_excluded
+    return data >= min
+  end
+
+  def self.max_cmp data, min, is_max_excluded
+    return data < min if is_max_excluded
+    return data <= min
   end
 
   def self.bad_value jcr, rule_atom, expected, actual
