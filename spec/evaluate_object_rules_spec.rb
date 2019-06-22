@@ -98,8 +98,48 @@ describe 'evaluate_object_rules' do
     expect( e.success ).to be_falsey
   end
 
+  it 'should pass with a degenerate rule where a repeated name definition with the same type' do
+    tree = JCR.parse( '$trule=: { "foo":string, "foo":string }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
+  it 'should pass with a degenerate rule where a sequence of two groups each containing the same member rule' do
+    tree = JCR.parse( '$trule=: { ( "foo":string ), ( "foo":string ) }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
+  it 'should pass with a member with the same name in two different sub-groups with different types' do
+    tree = JCR.parse( '$trule=: { ("foo":string, "bar":string ) | ("foo":integer, "baz":string) }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>10, "baz"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
+  it 'should fail with a member with the same name in two different sub-groups with different types an the wrong type is in the instance' do
+    tree = JCR.parse( '$trule=: { ("foo":string, "bar":string ) | ("foo":integer, "baz":string) }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"string", "baz"=>"other" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_falsey
+  end
+
   it 'should pass an object with one string against an object rule with a string member or a string member' do
     tree = JCR.parse( '$trule=: { "foo":string | "bar":string }' )
+    mapping = JCR.map_rule_names( tree )
+    JCR.check_rule_target_names( tree, mapping )
+    e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
+    expect( e.success ).to be_truthy
+  end
+
+  it 'should pass a choice object with both member rules the same' do
+    tree = JCR.parse( '$trule=: { "foo":string | "foo":string }' )
     mapping = JCR.map_rule_names( tree )
     JCR.check_rule_target_names( tree, mapping )
     e = JCR.evaluate_rule( tree[0], tree[0], { "foo"=>"thing" }, JCR::EvalConditions.new( mapping, nil ) )
