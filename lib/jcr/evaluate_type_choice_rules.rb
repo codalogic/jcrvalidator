@@ -26,19 +26,19 @@ require 'jcr/evaluate_rules'
 
 module JCR
 
-  def self.evaluate_group_rule jcr, rule_atom, data, econs, behavior = nil, target_annotations = nil
+  def self.evaluate_type_choice_rule jcr, rule_atom, data, econs, behavior = nil, target_annotations = nil
 
     push_trace_stack( econs, jcr )
-    trace( econs, "Evaluating group rule against ", data )
-    trace_def( econs, "group", jcr, data )
-    retval = evaluate_group( jcr, rule_atom, data, econs, behavior, target_annotations )
-    trace_eval( econs, "Group", retval, jcr, data, "group" )
+    trace( econs, "Evaluating type choice rule against ", data )
+    trace_def( econs, "type choice", jcr, data )
+    retval = evaluate_type_choice( jcr, rule_atom, data, econs, behavior, target_annotations )
+    trace_eval( econs, "Type Choice", retval, jcr, data, "type choice" )
     pop_trace_stack( econs )
     return retval
 
   end
 
-  def self.evaluate_group jcr, rule_atom, data, econs, behavior = nil, target_annotations = nil
+  def self.evaluate_type_choice jcr, rule_atom, data, econs, behavior = nil, target_annotations = nil
 
     rules, annotations = get_rules_and_annotations( jcr )
 
@@ -47,8 +47,8 @@ module JCR
     rules.each do |rule|
       if rule[:choice_combiner] && retval && retval.success
         return evaluate_not( annotations, retval, econs, target_annotations ) # short circuit
-      elsif rule[:sequence_combiner] && retval && !retval.success
-        return evaluate_not( annotations, retval, econs, target_annotations ) # short circuit
+      elsif rule[:sequence_combiner]
+        return Evaluation.new( false, "Type choices can not contain a sequence combiner #{raised_rule(jcr,rule_atom)}")
       end
       retval = evaluate_rule( rule, rule_atom, data, econs, behavior )
     end

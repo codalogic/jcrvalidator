@@ -28,7 +28,7 @@ require 'jcr/map_rule_names'
 require 'jcr/check_groups'
 require 'jcr/evaluate_array_rules'
 require 'jcr/evaluate_object_rules'
-require 'jcr/evaluate_group_rules'
+require 'jcr/evaluate_type_choice_rules'
 require 'jcr/evaluate_member_rules'
 require 'jcr/evaluate_value_rules'
 
@@ -126,7 +126,7 @@ module JCR
       when jcr[:primitive_rule]
         retval = evaluate_value_rule( jcr[:primitive_rule], rule_atom, data, econs, nil, target_annotations )
       when jcr[:group_rule]
-        retval = evaluate_group_rule( jcr[:group_rule], rule_atom, data, econs, behavior, target_annotations)
+        retval = evaluate_type_choice_rule( jcr[:group_rule], rule_atom, data, econs, behavior, target_annotations) # sub-groups in arrays and objects are handled via 'behavior' trigger above
       when jcr[:array_rule]
         retval = evaluate_array_rule( jcr[:array_rule], rule_atom, data, econs, behavior, target_annotations )
       when jcr[:object_rule]

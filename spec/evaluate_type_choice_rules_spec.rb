@@ -14,9 +14,9 @@
 require 'spec_helper'
 require 'rspec'
 require 'pp'
-require_relative '../lib/jcr/evaluate_group_rules'
+require_relative '../lib/jcr/evaluate_type_choice_rules'
 
-describe 'evaluate_group_rules' do
+describe 'evaluate_type_choice_rules' do
 
   it 'should pass a group with string variable' do
     tree = JCR.parse( '$trule = ( string )' )
