@@ -74,14 +74,16 @@ module JCR
     end
 
     if JCR.is_choice rules
-      all_name_keys = Set.new
-      JCR.each_non_excluded_member( rules, econs ) do |r|
-        all_name_keys << r[:_member_name_key]
-      end
-      rules.each do |sub_rule|
-        sub_name_keys = Set.new
-        JCR.each_non_excluded_member( sub_rule, econs ) { |r| sub_name_keys << r[:_member_name_key] }
-        sub_rule[:_excluded_name_keys] = all_name_keys - sub_name_keys
+      if rules.length > 0 && rules[0][:_excluded_name_keys] == nil  # If exclusions not already computed
+        all_name_keys = Set.new
+        JCR.each_non_excluded_member( rules, econs ) do |r|
+          all_name_keys << r[:_member_name_key]
+        end
+        rules.each do |sub_rule|
+          sub_name_keys = Set.new
+          JCR.each_non_excluded_member( sub_rule, econs ) { |r| sub_name_keys << r[:_member_name_key] }
+          sub_rule[:_excluded_name_keys] = all_name_keys - sub_name_keys
+        end
       end
     end
 
