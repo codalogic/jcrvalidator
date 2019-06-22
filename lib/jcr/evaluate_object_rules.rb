@@ -21,10 +21,9 @@ require 'jcr/name_association'
 module JCR
 
   class ObjectBehavior
-    attr_accessor :checked_hash, :name_association, :name_key_tally
+    attr_accessor :name_association, :name_key_tally
 
     def initialize
-      @checked_hash = {}
       @name_association = NameAssociation.new
       @name_key_tally = Hash.new 0
     end
@@ -96,63 +95,49 @@ module JCR
         return evaluate_not( annotations, retval, econs, target_annotations ) # short circuit
       end
 
-      has_excluded = false
+      has_excluded_name_keys = false
       if rule[:_excluded_name_keys]
         data.each_key do |json_name|
           name_key = behavior.name_association.key_from_json json_name
           if rule[:_excluded_name_keys].include?( name_key )
             retval = Evaluation.new( false, "JSON name #{json_name} excluded from rule #{jcr_to_s(rule)} in choice #{jcr_to_s(rules)}")
-            has_excluded = true
+            has_excluded_name_keys = true
           end
         end
       end
 
-      next if has_excluded
+      next if has_excluded_name_keys
 
       repeat_min, repeat_max, repeat_step = get_repetitions( rule, econs )
 
-      # Pay attention here:
-      # Group rules need to be treated differently than other rules
-      # Groups must be evaluated as if they are rules evaluated in
-      # isolation until they evaluate as true.
-      # Also, groups must be handed the entire object, not key/values
-      # as member rules use.
-
       grule,gtarget_annotations = get_group_or_object_mixin(rule, econs)
-      if grule
 
-        successes = 0
-        for i in 0..repeat_max-1
-          group_behavior = ObjectBehavior.new
-          group_behavior.checked_hash.merge!( behavior.checked_hash )
-          group_behavior.name_association = behavior.name_association
-          e = evaluate_rule( grule, rule_atom, data, econs, group_behavior, gtarget_annotations )
-          if e.success
-            behavior.checked_hash.merge!( group_behavior.checked_hash )
-            successes = successes + 1
+      if grule  # if a sub-group
+
+        if repeat_max > 1 || repeat_step > 1
+          retval = Evaluation.new( false, "sub-group in object can not have max repetitions greater than 1: #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+        else
+          retval = evaluate_rule( grule, rule_atom, data, econs, behavior, gtarget_annotations )
+
+          if ! retval.success
+            if repeat_min == 0
+              # Can pass a failing sub-group if all its members are not present in the JSON instance
+              has_json_member = false
+              each_non_excluded_member( grule, econs ) { |r| has_json_member ||= (behavior.name_key_tally[NameAssociation.key( r )] > 0 ) }
+              if has_json_member
+                retval = Evaluation.new( false, "object does not contain necessary part of optional group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+              else
+                retval = Evaluation.new( true, nil )
+              end
+            else
+              retval = Evaluation.new( false, "object does not contain group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+            end
           else
-            break;
+            retval = Evaluation.new( true, nil )
           end
         end
 
-        if successes == 0 && repeat_min > 0
-          retval = Evaluation.new( false, "object does not contain group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif successes < repeat_min
-          retval = Evaluation.new( false, "object does not have contain necessary number of group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif repeat_step && ( successes - repeat_min ) % repeat_step != 0
-          retval = Evaluation.new( false, "object matches (#{successes}) do not have contain repetition #{repeat_max} % #{repeat_step} of group #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        else
-          retval = Evaluation.new( true, nil )
-        end
-
       else # if not grule
-
-        repeat_results = nil
-        member_found = false
-
-        # do a little lookahead for member rules defined by names
-        # if defined by a name, and not a regex, just pluck it from the object
-        # and short-circuit the enumeration
 
         lookahead, ltarget_annotations = get_leaf_rule( rule, econs )
         lrules, lannotations = get_rules_and_annotations( lookahead[:member_rule] )
@@ -184,8 +169,6 @@ module JCR
           retval = Evaluation.new( false, "object has too many #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
         elsif repeat_step && ( num_passes - repeat_min ) % repeat_step != 0
           retval = Evaluation.new( false, "object matches (#{num_passes}) does not match repetition step of #{repeat_max} & #{repeat_step} for #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif member_found && num_passes == 0 && repeat_max > 0
-          retval = Evaluation.new( false, "object contains #{jcr_to_s(rule)} with member name though incorrect value for #{raised_rule(jcr,rule_atom)}")
         else
           retval = Evaluation.new( true, nil)
         end

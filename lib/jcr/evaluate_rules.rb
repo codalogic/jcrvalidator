@@ -175,7 +175,7 @@ module JCR
 
     repeat_min = 1
     repeat_max = 1
-    repeat_step = nil
+    repeat_step = 1
     if rule[:optional]
       repeat_min = 0
       repeat_max = 1
