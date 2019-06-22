@@ -156,67 +156,45 @@ module JCR
 
         lookahead, ltarget_annotations = get_leaf_rule( rule, econs )
         lrules, lannotations = get_rules_and_annotations( lookahead[:member_rule] )
-        if lrules[0][:member_name]
+        rule_name_key = NameAssociation.key lrules[0]
+        num_passes = 0
+        has_failed_value_match = false
 
-          repeat_results = {}
-          k = lrules[0][:member_name][:q_string].to_s
-          v = data[k]
-          if data.has_key? k
-            unless behavior.checked_hash[k]
-              e = evaluate_rule(rule, rule_atom, [k, v], econs, nil, nil)
-              behavior.checked_hash[k] = e.success
-              member_found = true if e.member_found
-              repeat_results[ k ] = v if e.success
-            end
-          else
-            trace( econs, "No member '#{k}' found in object.")
-            e = evaluate_rule(rule, rule_atom, [nil, nil], econs, nil, nil)
-            repeat_results[ nil ] = nil if e.success
-          end
-
-        else
-
-          regex = lrules[0][:member_regex][:regex]
-          trace( econs, "Scanning object for #{regex}.")
-          i = 0
-          found = false
-          repeat_results = data.select do |k,v|
-            unless behavior.checked_hash[k]
-              if i < repeat_max
-                e = evaluate_rule(rule, rule_atom, [k, v], econs, nil, nil)
-                behavior.checked_hash[k] = e.success
-                i = i + 1 if e.success
-                found = true if e.member_found
-                member_found = true if e.member_found
-                e.success
-              end
+        data.each do |json_name, json_value|
+          json_name_key = behavior.name_association.key_from_json json_name
+          if json_name_key == rule_name_key
+            retval = evaluate_rule(rule, rule_atom, [false, json_value], econs, nil, nil)
+            if retval.success
+              num_passes += 1
+            else
+              has_failed_value_match = true
+              break
             end
           end
-          unless found
-            trace( econs, "No member matching #{regex} found in object.")
-            e = evaluate_rule(rule, rule_atom, [nil, nil], econs, nil, nil)
-            repeat_results[ nil ] = nil if e.success
-          end
-
         end
 
-        trace( econs, "Found #{repeat_results.length} matching members repetitions in object with min #{repeat_min} and max #{repeat_max}" )
-        if repeat_results.length == 0 && repeat_min > 0
+        next if has_failed_value_match
+
+        trace( econs, "Found #{num_passes} matching members repetitions in object with min #{repeat_min} and max #{repeat_max}" )
+        if num_passes == 0 && repeat_min > 0
           retval = Evaluation.new( false, "object does not contain #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif repeat_results.length < repeat_min
+        elsif num_passes < repeat_min
           retval = Evaluation.new( false, "object does not have enough #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif repeat_results.length > repeat_max
+        elsif num_passes > repeat_max
           retval = Evaluation.new( false, "object has too many #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif repeat_step && ( repeat_results.length - repeat_min ) % repeat_step != 0
-          retval = Evaluation.new( false, "object matches (#{repeat_results.length}) does not match repetition step of #{repeat_max} & #{repeat_step} for #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
-        elsif member_found && repeat_results.length == 0 && repeat_max > 0
+        elsif repeat_step && ( num_passes - repeat_min ) % repeat_step != 0
+          retval = Evaluation.new( false, "object matches (#{num_passes}) does not match repetition step of #{repeat_max} & #{repeat_step} for #{jcr_to_s(rule)} for #{raised_rule(jcr,rule_atom)}")
+        elsif member_found && num_passes == 0 && repeat_max > 0
           retval = Evaluation.new( false, "object contains #{jcr_to_s(rule)} with member name though incorrect value for #{raised_rule(jcr,rule_atom)}")
         else
           retval = Evaluation.new( true, nil)
         end
-      end
 
-    end # end if grule else
+        retval = evaluate_not( lannotations, retval, econs )
+
+      end # end if grule else
+
+    end # end rules.each
 
     return evaluate_not( annotations, retval, econs, target_annotations )
   end
