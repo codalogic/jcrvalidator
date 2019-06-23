@@ -606,6 +606,18 @@ module JCR
           retval = retval + "@{not}"
         when a[:root_annotation]
           retval = retval + "@{root}"
+        when a[:exclude_min_annotation]
+          retval = retval + "@{exclude-min}"
+        when a[:exclude_max_annotation]
+          retval = retval + "@{exclude-max}"
+        when a[:default_annotation]
+          retval = retval + "@{default}"
+        when a[:format_annotation]
+          retval = retval + "@{format}"
+        when a[:choice_annotation]
+          retval = retval + "@{choice}"
+        when a[:augments_annotation]
+          retval = retval + "@{augments}"
         else
           retval = retval + "@{ ** unknown annotation ** }"
       end
